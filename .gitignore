@@ -1,0 +1,46 @@
+# Build
+build/
+build-release/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+compile_commands.json
+
+# Compiled files
+*.o
+*.obj
+*.a
+*.so
+*.dll
+*.exe
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# VS Code
+.vscode/
+
+# Generated results
+results/raw/*
+results/metrics/*
+results/aggregated/*
+results/manifests/*
+
+# Datasets
+datasets/raw/
+datasets/processed/
+
+# Temporary files
+*.tmp
+*.log
+*.out
+.DS_Store
+
+# HPC
+slurm-*.out
+slurm-*.err
