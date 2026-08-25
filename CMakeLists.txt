@@ -14,11 +14,13 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(OpenMP REQUIRED)
+find_package(OpenSSL REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
 add_library(
     bioentropy_core
     src/core/ExperimentConfig.cpp
+    src/core/SeedManager.cpp
 )
 
 target_include_directories(
@@ -30,6 +32,7 @@ target_include_directories(
 target_link_libraries(
     bioentropy_core
     PUBLIC
+        OpenSSL::Crypto
         yaml-cpp
 )
 
@@ -62,3 +65,21 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
             -Wpedantic
     )
 endif()
+
+enable_testing()
+
+add_executable(
+    seed-manager-test
+    tests/test_seed_manager.cpp
+)
+
+target_link_libraries(
+    seed-manager-test
+    PRIVATE
+        bioentropy_core
+)
+
+add_test(
+    NAME seed-manager-test
+    COMMAND seed-manager-test
+)

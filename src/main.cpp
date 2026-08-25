@@ -1,4 +1,5 @@
 #include "bioentropy/core/ExperimentConfig.hpp"
+#include "bioentropy/core/SeedManager.hpp"
 
 #include <exception>
 #include <filesystem>
@@ -35,20 +36,39 @@ int main(int argc, char* argv[]) {
 
     try {
         const auto config =
-            bioentropy::ExperimentConfig::from_yaml(config_path);
+            bioentropy::ExperimentConfig::from_yaml(
+                config_path
+            );
+
+        const auto derived_seed =
+            bioentropy::SeedManager::derive(
+                config.master_seed,
+                config.experiment_id,
+                config.replicate_id
+            );
 
         std::cout << "BioEntropy HPC Framework\n";
         std::cout << "------------------------\n";
         std::cout << "Experiment ID : "
                   << config.experiment_id << '\n';
+
         std::cout << "Replicate ID  : "
                   << config.replicate_id << '\n';
+
         std::cout << "Source        : "
                   << config.source.type << '\n';
+
         std::cout << "Output bits   : "
                   << config.source.output_bits << '\n';
 
-        std::cout << "\nConfiguration validated successfully.\n";
+        std::cout << "Derived seed  : "
+                  << bioentropy::SeedManager::to_hex(
+                         derived_seed
+                     )
+                  << '\n';
+
+        std::cout
+            << "\nConfiguration validated successfully.\n";
 
     } catch (const std::exception& exception) {
         std::cerr
