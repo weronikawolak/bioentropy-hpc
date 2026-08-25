@@ -21,6 +21,8 @@ add_library(
     bioentropy_core
     src/core/ExperimentConfig.cpp
     src/core/SeedManager.cpp
+    src/sources/RandomnessSourceFactory.cpp
+    src/sources/chaos/LogisticMapSource.cpp
 )
 
 target_include_directories(
@@ -55,6 +57,8 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
             -Wall
             -Wextra
             -Wpedantic
+            -fno-fast-math
+            -ffp-contract=off
     )
 
     target_compile_options(
@@ -82,4 +86,20 @@ target_link_libraries(
 add_test(
     NAME seed-manager-test
     COMMAND seed-manager-test
+)
+
+add_executable(
+    logistic-map-source-test
+    tests/test_logistic_map_source.cpp
+)
+
+target_link_libraries(
+    logistic-map-source-test
+    PRIVATE
+        bioentropy_core
+)
+
+add_test(
+    NAME logistic-map-source-test
+    COMMAND logistic-map-source-test
 )

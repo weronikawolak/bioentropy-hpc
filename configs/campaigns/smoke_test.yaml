@@ -6,3 +6,11 @@ experiment:
 source:
   type: "logistic"
   output_bits: 1000000
+
+  parameters:
+    r: 3.99
+    burn_in: 1000
+    extraction: "threshold"
+
+    initial_state:
+      mode: "derived_from_seed"
