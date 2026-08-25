@@ -1,15 +1,12 @@
 #pragma once
 
+#include "bioentropy/core/SourceConfig.hpp"
+
 #include <cstdint>
 #include <filesystem>
 #include <string>
 
 namespace bioentropy {
-
-struct SourceConfig {
-    std::string type;
-    std::uint64_t output_bits;
-};
 
 struct ExperimentConfig {
     std::string experiment_id;
