@@ -1,0 +1,8 @@
+experiment:
+  id: "smoke-test-001"
+  replicate_id: 0
+  master_seed: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+
+source:
+  type: "logistic"
+  output_bits: 1000000
