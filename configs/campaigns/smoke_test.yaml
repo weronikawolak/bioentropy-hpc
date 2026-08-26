@@ -14,3 +14,6 @@ source:
 
     initial_state:
       mode: "derived_from_seed"
+
+execution:
+  chunk_bytes: 65536
