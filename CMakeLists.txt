@@ -24,6 +24,7 @@ add_library(
     src/sources/RandomnessSourceFactory.cpp
     src/sources/chaos/LogisticMapSource.cpp
     src/metrics/BitstreamStatistics.cpp
+    src/io/ResultWriter.cpp
 )
 
 target_include_directories(
