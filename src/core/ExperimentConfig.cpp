@@ -65,7 +65,8 @@ LogisticMapConfig parse_logistic_config(
 
     LogisticMapConfig config{};
 
-    config.r = parameters["r"].as<double>();
+    config.r =
+        parameters["r"].as<double>();
 
     config.burn_in =
         parameters["burn_in"].as<std::uint64_t>();
@@ -121,7 +122,10 @@ ExperimentConfig ExperimentConfig::from_yaml(
     YAML::Node root;
 
     try {
-        root = YAML::LoadFile(config_path.string());
+        root =
+            YAML::LoadFile(
+                config_path.string()
+            );
     } catch (const YAML::Exception& exception) {
         throw std::runtime_error(
             "Failed to parse YAML configuration: "
@@ -132,8 +136,14 @@ ExperimentConfig ExperimentConfig::from_yaml(
     ExperimentConfig config{};
 
     try {
-        const YAML::Node experiment = root["experiment"];
-        const YAML::Node source = root["source"];
+        const YAML::Node experiment =
+            root["experiment"];
+
+        const YAML::Node source =
+            root["source"];
+
+        const YAML::Node execution =
+            root["execution"];
 
         if (!experiment) {
             throw std::runtime_error(
@@ -151,16 +161,28 @@ ExperimentConfig ExperimentConfig::from_yaml(
             experiment["id"].as<std::string>();
 
         config.replicate_id =
-            experiment["replicate_id"].as<std::uint32_t>();
+            experiment["replicate_id"]
+                .as<std::uint32_t>();
 
         config.master_seed =
-            experiment["master_seed"].as<std::string>();
+            experiment["master_seed"]
+                .as<std::string>();
 
         config.source.type =
             source["type"].as<std::string>();
 
         config.source.output_bits =
-            source["output_bits"].as<std::uint64_t>();
+            source["output_bits"]
+                .as<std::uint64_t>();
+
+        if (
+            execution &&
+            execution["chunk_bytes"]
+        ) {
+            config.execution.chunk_bytes =
+                execution["chunk_bytes"]
+                    .as<std::uint64_t>();
+        }
 
         if (config.source.type == "logistic") {
             config.source.parameters =
@@ -215,6 +237,12 @@ void ExperimentConfig::validate() const {
     if (source.output_bits % 8 != 0) {
         throw std::invalid_argument(
             "source.output_bits must be divisible by 8"
+        );
+    }
+
+    if (execution.chunk_bytes == 0) {
+        throw std::invalid_argument(
+            "execution.chunk_bytes must be greater than zero"
         );
     }
 

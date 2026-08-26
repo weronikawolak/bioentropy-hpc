@@ -8,12 +8,17 @@
 
 namespace bioentropy {
 
+struct ExecutionConfig {
+    std::uint64_t chunk_bytes{1'048'576};
+};
+
 struct ExperimentConfig {
     std::string experiment_id;
     std::uint32_t replicate_id;
     std::string master_seed;
 
     SourceConfig source;
+    ExecutionConfig execution;
 
     static ExperimentConfig from_yaml(
         const std::filesystem::path& config_path

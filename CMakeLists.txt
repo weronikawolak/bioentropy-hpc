@@ -23,6 +23,7 @@ add_library(
     src/core/SeedManager.cpp
     src/sources/RandomnessSourceFactory.cpp
     src/sources/chaos/LogisticMapSource.cpp
+    src/metrics/BitstreamStatistics.cpp
 )
 
 target_include_directories(
@@ -102,4 +103,20 @@ target_link_libraries(
 add_test(
     NAME logistic-map-source-test
     COMMAND logistic-map-source-test
+)
+
+add_executable(
+    bitstream-statistics-test
+    tests/test_bitstream_statistics.cpp
+)
+
+target_link_libraries(
+    bitstream-statistics-test
+    PRIVATE
+        bioentropy_core
+)
+
+add_test(
+    NAME bitstream-statistics-test
+    COMMAND bitstream-statistics-test
 )
