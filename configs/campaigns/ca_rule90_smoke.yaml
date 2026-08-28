@@ -1,0 +1,15 @@
+experiment:
+  id: "ca-rule90-smoke-001"
+  replicate_id: 0
+  master_seed: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+
+source:
+  type: "cellular_automaton"
+  output_bits: 1000000
+
+  parameters:
+    rule: 90
+    cells: 256
+
+execution:
+  chunk_bytes: 65536

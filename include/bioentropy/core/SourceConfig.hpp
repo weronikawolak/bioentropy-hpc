@@ -18,6 +18,7 @@ enum class LogisticExtractionMethod {
 
 struct LogisticMapConfig {
     double r{};
+
     LogisticInitialStateMode initial_state_mode{
         LogisticInitialStateMode::DerivedFromSeed
     };
@@ -31,14 +32,32 @@ struct LogisticMapConfig {
     };
 };
 
+enum class CellularAutomatonRule : std::uint16_t {
+    Rule30 = 30,
+    Rule90 = 90
+};
+
+struct CellularAutomatonConfig {
+    CellularAutomatonRule rule{
+        CellularAutomatonRule::Rule30
+    };
+
+    std::uint64_t cells{256};
+};
+
 using SourceParameters = std::variant<
-    LogisticMapConfig
+    LogisticMapConfig,
+    CellularAutomatonConfig
 >;
 
 struct SourceConfig {
     std::string type;
+
     std::uint64_t output_bits{};
-    SourceParameters parameters{LogisticMapConfig{}};
+
+    SourceParameters parameters{
+        LogisticMapConfig{}
+    };
 };
 
 } // namespace bioentropy

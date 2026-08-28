@@ -1,3 +1,4 @@
+
 #include "bioentropy/metrics/BitstreamStatistics.hpp"
 
 #include <array>

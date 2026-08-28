@@ -1,5 +1,6 @@
 #include "bioentropy/sources/RandomnessSourceFactory.hpp"
 
+#include "bioentropy/sources/CellularAutomatonSource.hpp"
 #include "bioentropy/sources/LogisticMapSource.hpp"
 
 #include <memory>
@@ -24,8 +25,36 @@ create_randomness_source(
             );
         }
 
-        return std::make_unique<LogisticMapSource>(
+        return std::make_unique<
+            LogisticMapSource
+        >(
             *logistic,
+            seed
+        );
+    }
+
+    if (
+        config.type ==
+        "cellular_automaton"
+    ) {
+        const auto* cellular =
+            std::get_if<
+                CellularAutomatonConfig
+            >(
+                &config.parameters
+            );
+
+        if (cellular == nullptr) {
+            throw std::invalid_argument(
+                "invalid parameters for "
+                "cellular automaton source"
+            );
+        }
+
+        return std::make_unique<
+            CellularAutomatonSource
+        >(
+            *cellular,
             seed
         );
     }
