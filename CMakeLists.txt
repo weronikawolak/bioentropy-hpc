@@ -174,3 +174,19 @@ add_test(
     NAME dna-sequence-source-test
     COMMAND dna-sequence-source-test
 )
+
+add_executable(
+    serial-bitstream-metrics-test
+    tests/test_serial_bitstream_metrics.cpp
+)
+
+target_link_libraries(
+    serial-bitstream-metrics-test
+    PRIVATE
+        bioentropy_core
+)
+
+add_test(
+    NAME serial-bitstream-metrics-test
+    COMMAND serial-bitstream-metrics-test
+)
