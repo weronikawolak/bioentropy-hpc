@@ -122,6 +122,42 @@ nlohmann::json source_parameters_to_json(
         };
     }
 
+
+    if (source.type == "chacha20_reference") {
+        const auto* config =
+            std::get_if<
+                ChaCha20ReferenceConfig
+            >(
+                &source.parameters
+            );
+
+        if (config == nullptr) {
+            throw std::invalid_argument(
+                "invalid ChaCha20 reference "
+                "source configuration"
+            );
+        }
+
+        return {
+            {
+                "initial_counter",
+                config->initial_counter
+            },
+            {
+                "key_derivation_domain",
+                "BIOENTROPY-HPC-CHACHA20-KEY-v1"
+            },
+            {
+                "nonce_derivation_domain",
+                "BIOENTROPY-HPC-CHACHA20-NONCE-v1"
+            },
+            {
+                "iv_layout",
+                "counter64_le || nonce64"
+            }
+        };
+    }
+
     throw std::invalid_argument(
         "unsupported source type while "
         "serializing result: "

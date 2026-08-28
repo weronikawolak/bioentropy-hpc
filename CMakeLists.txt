@@ -24,6 +24,7 @@ add_library(
     src/sources/RandomnessSourceFactory.cpp
     src/sources/chaos/LogisticMapSource.cpp
     src/sources/cellular/CellularAutomatonSource.cpp
+    src/sources/reference/ChaCha20ReferenceSource.cpp
     src/metrics/BitstreamStatistics.cpp
     src/io/ResultWriter.cpp
 )
@@ -137,4 +138,21 @@ target_link_libraries(
 add_test(
     NAME cellular-automaton-source-test
     COMMAND cellular-automaton-source-test
+)
+
+
+add_executable(
+    chacha20-reference-source-test
+    tests/test_chacha20_reference_source.cpp
+)
+
+target_link_libraries(
+    chacha20-reference-source-test
+    PRIVATE
+        bioentropy_core
+)
+
+add_test(
+    NAME chacha20-reference-source-test
+    COMMAND chacha20-reference-source-test
 )
