@@ -45,3 +45,4 @@ datasets/processed/
 slurm-*.out
 slurm-*.err
 /tools/
+/configs/generated/
