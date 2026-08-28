@@ -250,6 +250,8 @@ int main(int argc, char* argv[]) {
         result.output_bits =
             config.source.output_bits;
 
+
+        result.source_config = config.source;
         result.chunk_bytes =
             config.execution.chunk_bytes;
 

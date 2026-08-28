@@ -23,6 +23,7 @@ add_library(
     src/core/SeedManager.cpp
     src/sources/RandomnessSourceFactory.cpp
     src/sources/chaos/LogisticMapSource.cpp
+    src/sources/cellular/CellularAutomatonSource.cpp
     src/metrics/BitstreamStatistics.cpp
     src/io/ResultWriter.cpp
 )
@@ -120,4 +121,20 @@ target_link_libraries(
 add_test(
     NAME bitstream-statistics-test
     COMMAND bitstream-statistics-test
+)
+
+add_executable(
+    cellular-automaton-source-test
+    tests/test_cellular_automaton_source.cpp
+)
+
+target_link_libraries(
+    cellular-automaton-source-test
+    PRIVATE
+        bioentropy_core
+)
+
+add_test(
+    NAME cellular-automaton-source-test
+    COMMAND cellular-automaton-source-test
 )

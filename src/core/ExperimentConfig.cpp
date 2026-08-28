@@ -38,7 +38,8 @@ LogisticInitialStateMode parse_initial_state_mode(
     }
 
     throw std::invalid_argument(
-        "unsupported logistic initial_state.mode: " + value
+        "unsupported logistic initial_state.mode: "
+        + value
     );
 }
 
@@ -50,7 +51,8 @@ LogisticExtractionMethod parse_extraction_method(
     }
 
     throw std::invalid_argument(
-        "unsupported logistic extraction method: " + value
+        "unsupported logistic extraction method: "
+        + value
     );
 }
 
@@ -63,18 +65,28 @@ LogisticMapConfig parse_logistic_config(
         );
     }
 
+    if (!parameters["r"]) {
+        throw std::invalid_argument(
+            "missing logistic parameter: r"
+        );
+    }
+
     LogisticMapConfig config{};
 
     config.r =
         parameters["r"].as<double>();
 
-    config.burn_in =
-        parameters["burn_in"].as<std::uint64_t>();
+    if (parameters["burn_in"]) {
+        config.burn_in =
+            parameters["burn_in"].as<std::uint64_t>();
+    }
 
-    config.extraction =
-        parse_extraction_method(
-            parameters["extraction"].as<std::string>()
-        );
+    if (parameters["extraction"]) {
+        config.extraction =
+            parse_extraction_method(
+                parameters["extraction"].as<std::string>()
+            );
+    }
 
     const YAML::Node initial_state =
         parameters["initial_state"];
@@ -82,6 +94,12 @@ LogisticMapConfig parse_logistic_config(
     if (!initial_state) {
         throw std::invalid_argument(
             "missing source.parameters.initial_state section"
+        );
+    }
+
+    if (!initial_state["mode"]) {
+        throw std::invalid_argument(
+            "missing logistic initial_state.mode"
         );
     }
 
@@ -103,6 +121,57 @@ LogisticMapConfig parse_logistic_config(
         config.x0 =
             initial_state["x0"].as<double>();
     }
+
+    return config;
+}
+
+CellularAutomatonRule parse_ca_rule(
+    std::uint16_t rule
+) {
+    if (rule == 30) {
+        return CellularAutomatonRule::Rule30;
+    }
+
+    if (rule == 90) {
+        return CellularAutomatonRule::Rule90;
+    }
+
+    throw std::invalid_argument(
+        "cellular automaton rule must be 30 or 90"
+    );
+}
+
+CellularAutomatonConfig parse_ca_config(
+    const YAML::Node& parameters
+) {
+    if (!parameters) {
+        throw std::invalid_argument(
+            "missing source.parameters section "
+            "for cellular automaton source"
+        );
+    }
+
+    if (!parameters["rule"]) {
+        throw std::invalid_argument(
+            "missing cellular automaton parameter: rule"
+        );
+    }
+
+    if (!parameters["cells"]) {
+        throw std::invalid_argument(
+            "missing cellular automaton parameter: cells"
+        );
+    }
+
+    CellularAutomatonConfig config{};
+
+    config.rule =
+        parse_ca_rule(
+            parameters["rule"].as<std::uint16_t>()
+        );
+
+    config.cells =
+        parameters["cells"].as<std::uint64_t>();
 
     return config;
 }
@@ -187,6 +256,14 @@ ExperimentConfig ExperimentConfig::from_yaml(
         if (config.source.type == "logistic") {
             config.source.parameters =
                 parse_logistic_config(
+                    source["parameters"]
+                );
+        } else if (
+            config.source.type ==
+            "cellular_automaton"
+        ) {
+            config.source.parameters =
+                parse_ca_config(
                     source["parameters"]
                 );
         } else {
@@ -288,6 +365,50 @@ void ExperimentConfig::validate() const {
                 );
             }
         }
+    } else if (
+        source.type ==
+        "cellular_automaton"
+    ) {
+        const auto* ca =
+            std::get_if<CellularAutomatonConfig>(
+                &source.parameters
+            );
+
+        if (ca == nullptr) {
+            throw std::invalid_argument(
+                "cellular automaton has invalid parameters"
+            );
+        }
+
+        if (
+            ca->rule != CellularAutomatonRule::Rule30 &&
+            ca->rule != CellularAutomatonRule::Rule90
+        ) {
+            throw std::invalid_argument(
+                "cellular automaton rule must be 30 or 90"
+            );
+        }
+
+        if (
+            ca->cells != 256 &&
+            ca->cells != 1024
+        ) {
+            throw std::invalid_argument(
+                "cellular automaton cells must be 256 or 1024"
+            );
+        }
+
+        if (ca->cells % 8 != 0) {
+            throw std::invalid_argument(
+                "cellular automaton cell count "
+                "must be divisible by 8"
+            );
+        }
+    } else {
+        throw std::invalid_argument(
+            "unsupported source type: "
+            + source.type
+        );
     }
 }
 
