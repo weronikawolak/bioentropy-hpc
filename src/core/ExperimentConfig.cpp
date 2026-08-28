@@ -176,6 +176,26 @@ CellularAutomatonConfig parse_ca_config(
     return config;
 }
 
+
+ChaCha20ReferenceConfig
+parse_chacha20_reference_config(
+    const YAML::Node& parameters
+) {
+    ChaCha20ReferenceConfig config{};
+
+    if (
+        parameters &&
+        parameters["initial_counter"]
+    ) {
+        config.initial_counter =
+            parameters["initial_counter"]
+                .as<std::uint64_t>();
+    }
+
+    return config;
+}
+
+
 } // namespace
 
 ExperimentConfig ExperimentConfig::from_yaml(
@@ -264,6 +284,14 @@ ExperimentConfig ExperimentConfig::from_yaml(
         ) {
             config.source.parameters =
                 parse_ca_config(
+                    source["parameters"]
+                );
+        } else if (
+            config.source.type ==
+            "chacha20_reference"
+        ) {
+            config.source.parameters =
+                parse_chacha20_reference_config(
                     source["parameters"]
                 );
         } else {
@@ -402,6 +430,23 @@ void ExperimentConfig::validate() const {
             throw std::invalid_argument(
                 "cellular automaton cell count "
                 "must be divisible by 8"
+            );
+        }
+    } else if (
+        source.type ==
+        "chacha20_reference"
+    ) {
+        const auto* chacha =
+            std::get_if<
+                ChaCha20ReferenceConfig
+            >(
+                &source.parameters
+            );
+
+        if (chacha == nullptr) {
+            throw std::invalid_argument(
+                "ChaCha20 reference source "
+                "has invalid parameters"
             );
         }
     } else {

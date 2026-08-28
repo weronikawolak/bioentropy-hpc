@@ -1,0 +1,14 @@
+experiment:
+  id: "chacha20-reference-smoke-001"
+  replicate_id: 0
+  master_seed: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+
+source:
+  type: "chacha20_reference"
+  output_bits: 1000000
+
+  parameters:
+    initial_counter: 0
+
+execution:
+  chunk_bytes: 65536

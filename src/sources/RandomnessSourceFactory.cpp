@@ -1,6 +1,7 @@
 #include "bioentropy/sources/RandomnessSourceFactory.hpp"
 
 #include "bioentropy/sources/CellularAutomatonSource.hpp"
+#include "bioentropy/sources/ChaCha20ReferenceSource.hpp"
 #include "bioentropy/sources/LogisticMapSource.hpp"
 
 #include <memory>
@@ -55,6 +56,32 @@ create_randomness_source(
             CellularAutomatonSource
         >(
             *cellular,
+            seed
+        );
+    }
+
+    if (
+        config.type ==
+        "chacha20_reference"
+    ) {
+        const auto* chacha =
+            std::get_if<
+                ChaCha20ReferenceConfig
+            >(
+                &config.parameters
+            );
+
+        if (chacha == nullptr) {
+            throw std::invalid_argument(
+                "invalid parameters for "
+                "ChaCha20 reference source"
+            );
+        }
+
+        return std::make_unique<
+            ChaCha20ReferenceSource
+        >(
+            *chacha,
             seed
         );
     }
