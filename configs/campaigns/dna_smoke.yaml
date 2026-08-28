@@ -1,0 +1,24 @@
+experiment:
+  id: "dna-smoke-001"
+  replicate_id: 0
+  master_seed: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+
+source:
+  type: "dna_sequence"
+  output_bits: 32
+
+  parameters:
+    sequence_file: "tests/data/dna_smoke_sequence.txt"
+
+    assembly_accession: "SYNTHETIC-TEST"
+    sequence_accession: "SYNTHETIC-TEST-SEQ"
+
+    window_start_nt: 0
+    window_length_nt: 16
+
+    mapping: "acgt_2bit"
+
+    expected_sequence_sha256: "390eb1e8f4984f38e796da8c83fbbe1a0325e12931e06f81b0a3b956d448bd76"
+
+execution:
+  chunk_bytes: 2

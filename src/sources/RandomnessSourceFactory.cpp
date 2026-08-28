@@ -2,6 +2,7 @@
 
 #include "bioentropy/sources/CellularAutomatonSource.hpp"
 #include "bioentropy/sources/ChaCha20ReferenceSource.hpp"
+#include "bioentropy/sources/DNASequenceSource.hpp"
 #include "bioentropy/sources/LogisticMapSource.hpp"
 
 #include <memory>
@@ -83,6 +84,30 @@ create_randomness_source(
         >(
             *chacha,
             seed
+        );
+    }
+
+
+    if (
+        config.type ==
+        "dna_sequence"
+    ) {
+        const auto* dna =
+            std::get_if<DNASequenceConfig>(
+                &config.parameters
+            );
+
+        if (dna == nullptr) {
+            throw std::invalid_argument(
+                "invalid parameters for "
+                "DNA sequence source"
+            );
+        }
+
+        return std::make_unique<
+            DNASequenceSource
+        >(
+            *dna
         );
     }
 

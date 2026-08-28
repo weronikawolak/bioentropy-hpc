@@ -196,6 +196,92 @@ parse_chacha20_reference_config(
 }
 
 
+
+DNAMapping parse_dna_mapping(
+    const std::string& value
+) {
+    if (value == "acgt_2bit") {
+        return DNAMapping::ACGT2Bit;
+    }
+
+    throw std::invalid_argument(
+        "unsupported DNA mapping: "
+        + value
+    );
+}
+
+DNASequenceConfig parse_dna_sequence_config(
+    const YAML::Node& parameters
+) {
+    if (!parameters) {
+        throw std::invalid_argument(
+            "missing source.parameters section "
+            "for DNA source"
+        );
+    }
+
+    const char* required[] = {
+        "sequence_file",
+        "assembly_accession",
+        "sequence_accession",
+        "window_start_nt",
+        "window_length_nt",
+        "mapping"
+    };
+
+    for (const char* field : required) {
+        if (!parameters[field]) {
+            throw std::invalid_argument(
+                std::string(
+                    "missing DNA parameter: "
+                ) + field
+            );
+        }
+    }
+
+    DNASequenceConfig config{};
+
+    config.sequence_file =
+        parameters["sequence_file"]
+            .as<std::string>();
+
+    config.assembly_accession =
+        parameters["assembly_accession"]
+            .as<std::string>();
+
+    config.sequence_accession =
+        parameters["sequence_accession"]
+            .as<std::string>();
+
+    config.window_start_nt =
+        parameters["window_start_nt"]
+            .as<std::uint64_t>();
+
+    config.window_length_nt =
+        parameters["window_length_nt"]
+            .as<std::uint64_t>();
+
+    config.mapping =
+        parse_dna_mapping(
+            parameters["mapping"]
+                .as<std::string>()
+        );
+
+    if (
+        parameters[
+            "expected_sequence_sha256"
+        ]
+    ) {
+        config.expected_sequence_sha256 =
+            parameters[
+                "expected_sequence_sha256"
+            ].as<std::string>();
+    }
+
+    return config;
+}
+
+
 } // namespace
 
 ExperimentConfig ExperimentConfig::from_yaml(
@@ -292,6 +378,14 @@ ExperimentConfig ExperimentConfig::from_yaml(
         ) {
             config.source.parameters =
                 parse_chacha20_reference_config(
+                    source["parameters"]
+                );
+        } else if (
+            config.source.type ==
+            "dna_sequence"
+        ) {
+            config.source.parameters =
+                parse_dna_sequence_config(
                     source["parameters"]
                 );
         } else {
@@ -447,6 +541,87 @@ void ExperimentConfig::validate() const {
             throw std::invalid_argument(
                 "ChaCha20 reference source "
                 "has invalid parameters"
+            );
+        }
+    } else if (
+        source.type ==
+        "dna_sequence"
+    ) {
+        const auto* dna =
+            std::get_if<DNASequenceConfig>(
+                &source.parameters
+            );
+
+        if (dna == nullptr) {
+            throw std::invalid_argument(
+                "DNA source has invalid parameters"
+            );
+        }
+
+        if (dna->sequence_file.empty()) {
+            throw std::invalid_argument(
+                "DNA sequence_file must not be empty"
+            );
+        }
+
+        if (dna->assembly_accession.empty()) {
+            throw std::invalid_argument(
+                "DNA assembly_accession "
+                "must not be empty"
+            );
+        }
+
+        if (dna->sequence_accession.empty()) {
+            throw std::invalid_argument(
+                "DNA sequence_accession "
+                "must not be empty"
+            );
+        }
+
+        if (dna->window_length_nt == 0) {
+            throw std::invalid_argument(
+                "DNA window_length_nt "
+                "must be greater than zero"
+            );
+        }
+
+        if (dna->window_length_nt % 4 != 0) {
+            throw std::invalid_argument(
+                "DNA window_length_nt must "
+                "be divisible by 4"
+            );
+        }
+
+        if (
+            dna->window_length_nt >
+            UINT64_MAX / 2
+        ) {
+            throw std::invalid_argument(
+                "DNA window_length_nt is too large"
+            );
+        }
+
+        const std::uint64_t expected_bits =
+            dna->window_length_nt * 2;
+
+        if (
+            source.output_bits !=
+            expected_bits
+        ) {
+            throw std::invalid_argument(
+                "DNA output_bits must equal "
+                "2 * window_length_nt"
+            );
+        }
+
+        if (
+            !dna->expected_sequence_sha256.empty() &&
+            dna->expected_sequence_sha256.size() != 64
+        ) {
+            throw std::invalid_argument(
+                "DNA expected_sequence_sha256 "
+                "must contain 64 hexadecimal "
+                "characters"
             );
         }
     } else {
