@@ -1,0 +1,20 @@
+experiment:
+  id: "dna-bacillus_168-w00"
+  replicate_id: 0
+  master_seed: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+
+source:
+  type: "dna_sequence"
+  output_bits: 800000
+
+  parameters:
+    sequence_file: "datasets/processed/dna/GCF_000009045.1/window_00.dna"
+    assembly_accession: "GCF_000009045.1"
+    sequence_accession: "NC_000964.3"
+    window_start_nt: 3200000
+    window_length_nt: 400000
+    mapping: "acgt_2bit"
+    expected_sequence_sha256: "e97d6024a2a12dd73f74783b7cfd12e06ab5439d092659ee0c10bba5911f3da3"
+
+execution:
+  chunk_bytes: 65536

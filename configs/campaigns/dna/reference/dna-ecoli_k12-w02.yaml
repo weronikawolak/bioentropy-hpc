@@ -1,0 +1,20 @@
+experiment:
+  id: "dna-ecoli_k12-w02"
+  replicate_id: 0
+  master_seed: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+
+source:
+  type: "dna_sequence"
+  output_bits: 800000
+
+  parameters:
+    sequence_file: "datasets/processed/dna/GCF_000005845.2/window_02.dna"
+    assembly_accession: "GCF_000005845.2"
+    sequence_accession: "NC_000913.3"
+    window_start_nt: 800000
+    window_length_nt: 400000
+    mapping: "acgt_2bit"
+    expected_sequence_sha256: "ff215cd15c428d32f2957a1ff2958eac519ff98f4648a10b5f5308f74e8809ea"
+
+execution:
+  chunk_bytes: 65536

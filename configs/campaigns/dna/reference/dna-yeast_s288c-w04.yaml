@@ -1,0 +1,20 @@
+experiment:
+  id: "dna-yeast_s288c-w04"
+  replicate_id: 0
+  master_seed: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+
+source:
+  type: "dna_sequence"
+  output_bits: 800000
+
+  parameters:
+    sequence_file: "datasets/processed/dna/GCF_000146045.2/window_04.dna"
+    assembly_accession: "GCF_000146045.2"
+    sequence_accession: "NC_001144.5"
+    window_start_nt: 400000
+    window_length_nt: 400000
+    mapping: "acgt_2bit"
+    expected_sequence_sha256: "77f12c617d8e2de7486a34902efa3305d8a076218a5840238ded280115314f0c"
+
+execution:
+  chunk_bytes: 65536

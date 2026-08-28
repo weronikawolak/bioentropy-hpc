@@ -25,6 +25,7 @@ add_library(
     src/sources/chaos/LogisticMapSource.cpp
     src/sources/cellular/CellularAutomatonSource.cpp
     src/sources/reference/ChaCha20ReferenceSource.cpp
+    src/sources/dna/DNASequenceSource.cpp
     src/metrics/BitstreamStatistics.cpp
     src/io/ResultWriter.cpp
 )
@@ -155,4 +156,21 @@ target_link_libraries(
 add_test(
     NAME chacha20-reference-source-test
     COMMAND chacha20-reference-source-test
+)
+
+
+add_executable(
+    dna-sequence-source-test
+    tests/test_dna_sequence_source.cpp
+)
+
+target_link_libraries(
+    dna-sequence-source-test
+    PRIVATE
+        bioentropy_core
+)
+
+add_test(
+    NAME dna-sequence-source-test
+    COMMAND dna-sequence-source-test
 )

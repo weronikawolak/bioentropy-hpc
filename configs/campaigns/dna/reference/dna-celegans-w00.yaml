@@ -1,0 +1,20 @@
+experiment:
+  id: "dna-celegans-w00"
+  replicate_id: 0
+  master_seed: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+
+source:
+  type: "dna_sequence"
+  output_bits: 800000
+
+  parameters:
+    sequence_file: "datasets/processed/dna/GCF_000002985.6/window_00.dna"
+    assembly_accession: "GCF_000002985.6"
+    sequence_accession: "NC_003284.9"
+    window_start_nt: 15200000
+    window_length_nt: 400000
+    mapping: "acgt_2bit"
+    expected_sequence_sha256: "3bbfe2536d885aa6da6ce7094b0704974971f5c2585f9312dcbd2b4b691a097f"
+
+execution:
+  chunk_bytes: 65536

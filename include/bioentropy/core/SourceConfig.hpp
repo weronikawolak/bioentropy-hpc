@@ -24,7 +24,6 @@ struct LogisticMapConfig {
     };
 
     std::optional<double> x0;
-
     std::uint64_t burn_in{0};
 
     LogisticExtractionMethod extraction{
@@ -49,10 +48,31 @@ struct ChaCha20ReferenceConfig {
     std::uint64_t initial_counter{0};
 };
 
+enum class DNAMapping {
+    ACGT2Bit
+};
+
+struct DNASequenceConfig {
+    std::string sequence_file;
+
+    std::string assembly_accession;
+    std::string sequence_accession;
+
+    std::uint64_t window_start_nt{0};
+    std::uint64_t window_length_nt{0};
+
+    DNAMapping mapping{
+        DNAMapping::ACGT2Bit
+    };
+
+    std::string expected_sequence_sha256;
+};
+
 using SourceParameters = std::variant<
     LogisticMapConfig,
     CellularAutomatonConfig,
-    ChaCha20ReferenceConfig
+    ChaCha20ReferenceConfig,
+    DNASequenceConfig
 >;
 
 struct SourceConfig {

@@ -158,6 +158,59 @@ nlohmann::json source_parameters_to_json(
         };
     }
 
+
+    if (source.type == "dna_sequence") {
+        const auto* config =
+            std::get_if<DNASequenceConfig>(
+                &source.parameters
+            );
+
+        if (config == nullptr) {
+            throw std::invalid_argument(
+                "invalid DNA source configuration"
+            );
+        }
+
+        return {
+            {
+                "sequence_file",
+                config->sequence_file
+            },
+            {
+                "assembly_accession",
+                config->assembly_accession
+            },
+            {
+                "sequence_accession",
+                config->sequence_accession
+            },
+            {
+                "window_start_nt",
+                config->window_start_nt
+            },
+            {
+                "window_length_nt",
+                config->window_length_nt
+            },
+            {
+                "mapping",
+                "acgt_2bit"
+            },
+            {
+                "mapping_definition",
+                "A=00,C=01,G=10,T=11"
+            },
+            {
+                "expected_sequence_sha256",
+                config->expected_sequence_sha256
+            },
+            {
+                "uses_experiment_seed",
+                false
+            }
+        };
+    }
+
     throw std::invalid_argument(
         "unsupported source type while "
         "serializing result: "

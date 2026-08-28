@@ -1,0 +1,20 @@
+experiment:
+  id: "dna-arabidopsis-w01"
+  replicate_id: 0
+  master_seed: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+
+source:
+  type: "dna_sequence"
+  output_bits: 800000
+
+  parameters:
+    sequence_file: "datasets/processed/dna/GCF_000001735.4/window_01.dna"
+    assembly_accession: "GCF_000001735.4"
+    sequence_accession: "NC_003074.8"
+    window_start_nt: 15532545
+    window_length_nt: 400000
+    mapping: "acgt_2bit"
+    expected_sequence_sha256: "849cc16bfd8cac6baeeddd37e8f2858377d008c5bf9840d9410996f368b2295e"
+
+execution:
+  chunk_bytes: 65536
