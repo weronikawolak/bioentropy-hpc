@@ -44,3 +44,4 @@ datasets/processed/
 # HPC
 slurm-*.out
 slurm-*.err
+/tools/
