@@ -363,6 +363,34 @@ ResultWriter::write_json(
                 {
                     "shannon_entropy",
                     result.statistics.shannon_entropy
+                },
+                {
+                    "autocorrelation_lag1",
+                    result.statistics.autocorrelation_lag1_defined
+                        ? nlohmann::json(
+                            result.statistics.autocorrelation_lag1
+                        )
+                        : nlohmann::json(nullptr)
+                },
+                {
+                    "runs",
+                    result.statistics.runs
+                },
+                {
+                    "expected_runs",
+                    result.statistics.expected_runs
+                },
+                {
+                    "runs_z_score",
+                    result.statistics.runs_z_score_defined
+                        ? nlohmann::json(
+                            result.statistics.runs_z_score
+                        )
+                        : nlohmann::json(nullptr)
+                },
+                {
+                    "longest_run",
+                    result.statistics.longest_run
                 }
             }
         }
