@@ -49,3 +49,6 @@ slurm-*.err
 
 # Local research notes
 docs/local/
+
+# Generated experiment results
+results/

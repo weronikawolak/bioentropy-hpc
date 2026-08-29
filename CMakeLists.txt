@@ -20,6 +20,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(OpenMP REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(yaml-cpp REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(MPFR REQUIRED IMPORTED_TARGET mpfr)
 
 add_library(
     bioentropy_core
@@ -56,6 +58,7 @@ target_link_libraries(
     PUBLIC
         OpenSSL::Crypto
         yaml-cpp
+        PkgConfig::MPFR
 )
 
 add_executable(
@@ -363,4 +366,33 @@ target_link_libraries(
     ascon-vs-fetteha-benchmark
     PRIVATE
         bioentropy_core
+)
+
+add_executable(
+    brent-cycle-detection-test
+    tests/test_brent_cycle_detection.cpp
+)
+
+target_link_libraries(
+    brent-cycle-detection-test
+    PRIVATE
+        bioentropy_core
+)
+
+add_test(
+    NAME brent-cycle-detection-test
+    COMMAND brent-cycle-detection-test
+)
+
+add_executable(
+    logistic-periodicity-probe
+    src/benchmark/benchmark_logistic_periodicity.cpp
+)
+
+target_link_libraries(
+    logistic-periodicity-probe
+    PRIVATE
+        bioentropy_core
+        PkgConfig::MPFR
+        yaml-cpp
 )

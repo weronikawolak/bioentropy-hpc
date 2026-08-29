@@ -16,14 +16,35 @@ enum class LogisticExtractionMethod {
     Threshold
 };
 
+enum class LogisticArithmeticMode {
+    Float32,
+    Float64,
+    FixedQ3_29,
+    Mpfr256
+};
+
 struct LogisticMapConfig {
     double r{};
+
+    /*
+     * Original decimal representation from YAML.
+     *
+     * Used by arbitrary-precision backends so that
+     * parameters are not first quantized to binary64.
+     */
+    std::string r_literal;
+
+    LogisticArithmeticMode arithmetic_mode{
+        LogisticArithmeticMode::Float64
+    };
 
     LogisticInitialStateMode initial_state_mode{
         LogisticInitialStateMode::DerivedFromSeed
     };
 
     std::optional<double> x0;
+    std::optional<std::string> x0_literal;
+
     std::uint64_t burn_in{0};
 
     LogisticExtractionMethod extraction{

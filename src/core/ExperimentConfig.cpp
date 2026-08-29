@@ -73,6 +73,32 @@ LogisticExtractionMethod parse_extraction_method(
     );
 }
 
+LogisticArithmeticMode
+parse_logistic_arithmetic_mode(
+    const std::string& value
+) {
+    if (value == "float32") {
+        return LogisticArithmeticMode::Float32;
+    }
+
+    if (value == "float64") {
+        return LogisticArithmeticMode::Float64;
+    }
+
+    if (value == "fixed_q3_29") {
+        return LogisticArithmeticMode::FixedQ3_29;
+    }
+
+    if (value == "mpfr_256") {
+        return LogisticArithmeticMode::Mpfr256;
+    }
+
+    throw std::invalid_argument(
+        "unsupported logistic arithmetic mode: "
+        + value
+    );
+}
+
 LogisticMapConfig parse_logistic_config(
     const YAML::Node& parameters
 ) {
@@ -92,6 +118,26 @@ LogisticMapConfig parse_logistic_config(
 
     config.r =
         parameters["r"].as<double>();
+
+    config.r_literal =
+        parameters["r"].Scalar();
+
+    const YAML::Node arithmetic =
+        parameters["arithmetic"];
+
+    if (arithmetic) {
+        if (!arithmetic["mode"]) {
+            throw std::invalid_argument(
+                "missing logistic arithmetic.mode"
+            );
+        }
+
+        config.arithmetic_mode =
+            parse_logistic_arithmetic_mode(
+                arithmetic["mode"]
+                    .as<std::string>()
+            );
+    }
 
     if (parameters["burn_in"]) {
         config.burn_in =
@@ -137,6 +183,9 @@ LogisticMapConfig parse_logistic_config(
 
         config.x0 =
             initial_state["x0"].as<double>();
+
+        config.x0_literal =
+            initial_state["x0"].Scalar();
     }
 
     return config;

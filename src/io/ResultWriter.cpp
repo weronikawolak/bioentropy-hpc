@@ -126,6 +126,28 @@ nlohmann::json source_parameters_to_json(
                 config->r
             },
             {
+                "arithmetic",
+                {
+                    {
+                        "mode",
+                        config->arithmetic_mode ==
+                                LogisticArithmeticMode::Float32
+                            ? "float32"
+                            : (
+                                config->arithmetic_mode ==
+                                    LogisticArithmeticMode::FixedQ3_29
+                                ? "fixed_q3_29"
+                                : (
+                                    config->arithmetic_mode ==
+                                        LogisticArithmeticMode::Mpfr256
+                                    ? "mpfr_256"
+                                    : "float64"
+                                )
+                            )
+                    }
+                }
+            },
+            {
                 "burn_in",
                 config->burn_in
             },

@@ -3678,3 +3678,378 @@ The smoke demonstrates that:
 
 Final quantitative conclusions will be based on the full replicated
 HPC campaign and subsequent deep statistical testing.
+
+## Logistic Map numerical precision and exact digital periodicity
+
+### Motivation
+
+A dedicated numerical-representation study was added for the Logistic Map to test whether the apparent statistical quality of a deterministic digital chaotic source depends on the arithmetic representation used to evaluate the recurrence.
+
+The experiment currently compares four arithmetic backends:
+
+- IEEE-754 binary32 (`float32`)
+- IEEE-754 binary64 (`float64`)
+- unsigned fixed-point Q3.29 (`fixed_q3_29`)
+- MPFR with 256-bit precision (`mpfr_256`)
+
+The existing binary64 implementation remains the default in order to preserve backward compatibility with earlier campaign configurations.
+
+MPFR is treated as a high-precision digital reference, not as a physical or infinite-precision entropy source.
+
+### Controlled arithmetic profiles
+
+All variants evaluate the same Logistic Map
+
+x[n+1] = r * x[n] * (1 - x[n])
+
+and use the same threshold bit extraction rule.
+
+For `float32`, both the map parameter and state are explicitly converted to IEEE-754 binary32 and every recurrence is evaluated using binary32 arithmetic.
+
+For `float64`, the original project implementation is preserved.
+
+For `fixed_q3_29`, the project uses scale
+
+S = 2^29
+
+with
+
+R = floor(r * S)
+
+X = floor(x * S)
+
+and recurrence
+
+X[n+1] = floor(R * X[n] * (S - X[n]) / S^2).
+
+A 128-bit integer intermediate is used to prevent overflow during the exact fixed-point multiplication.
+
+For `mpfr_256`, the recurrence is evaluated using 256-bit MPFR arithmetic with round-to-nearest. Decimal parameter literals from YAML are retained so that MPFR parameters are not first quantized through binary64.
+
+### Local precision smoke
+
+A controlled local smoke experiment used the same Logistic Map configuration and generated 1,000,000 RAW bits for every arithmetic mode.
+
+Observed basic statistics:
+
+| arithmetic | bias | Shannon H | lag-1 autocorrelation | runs z | longest run |
+|---|---:|---:|---:|---:|---:|
+| float32 | 0.008979 | 0.9997673603 | 0.0208452531 | -20.8462434 | 11 |
+| float64 | 0.000391 | 0.9999995589 | -0.0009416115 | 0.9406126 | 21 |
+| fixed_q3_29 | 0.005686 | 0.9999067116 | 0.0202783202 | -20.2793103 | 12 |
+| mpfr_256 | 0.000431 | 0.9999994640 | -0.0001837434 | 0.1827433 | 21 |
+
+All four arithmetic modes produced distinct SHA-256 fingerprints and therefore distinct deterministic digital trajectories.
+
+The local smoke suggests two qualitatively different groups for this particular configuration: `float32` and Q3.29 show clearly detectable serial structure, whereas `float64` and MPFR-256 remain close to the expected values of the basic statistical diagnostics.
+
+This is a single-configuration smoke result and is not interpreted as evidence that one arithmetic representation is universally superior.
+
+### Exact digital-state periodicity
+
+An exact-state cycle detector based on Brent's algorithm was implemented and independently regression-tested.
+
+The detector compares exact represented digital states rather than using an epsilon-based floating-point comparison.
+
+The smoke configuration used:
+
+- r = 4.000000000000000
+- x0 = 0.79740852937250928
+- maximum cycle-search bound = 10,000,000 state transitions
+
+Two probes were run: one from the original initial state (`burn_in=0`) and one after the normal screening burn-in of 1000 iterations.
+
+Results from the original x0:
+
+| arithmetic | transient mu | cycle lambda | result |
+|---|---:|---:|---|
+| float32 | 565 | 4344 | exact cycle detected |
+| float64 | NA | NA | no exact recurrence observed within 10^7 transitions |
+| fixed_q3_29 | 3173 | 6876 | exact cycle detected |
+| mpfr_256 | NA | NA | no exact recurrence observed within 10^7 transitions |
+
+Results after burn-in = 1000:
+
+| arithmetic | post-burn-in mu | cycle lambda | result |
+|---|---:|---:|---|
+| float32 | 0 | 4344 | exact cycle detected |
+| float64 | NA | NA | no exact recurrence observed within 10^7 transitions |
+| fixed_q3_29 | 2173 | 6876 | exact cycle detected |
+| mpfr_256 | NA | NA | no exact recurrence observed within 10^7 transitions |
+
+The Q3.29 result provides an internal consistency check:
+
+3173 - 1000 = 2173
+
+while the detected cycle length remains unchanged at 6876.
+
+For binary32, the original trajectory enters its cycle after only 565 iterations. Consequently, after the configured 1000-iteration burn-in the source is already on the cycle, producing post-burn-in mu = 0 while preserving lambda = 4344.
+
+Because the output bit is a deterministic function of the internal state, once the state enters a cycle the resulting bit sequence is also periodic, with a bit period that divides the detected state-cycle length. The exact bit period has not yet been measured separately.
+
+The failure to detect a cycle for binary64 or MPFR-256 within 10^7 transitions is treated as a censored search result only. It does not establish aperiodicity or absence of finite-state recurrence.
+
+### Scientific interpretation
+
+These results demonstrate why Shannon entropy alone is insufficient for evaluating digitally implemented chaotic candidate randomness sources.
+
+For example, the binary32 stream has Shannon entropy approximately 0.99977 bits/bit, yet the exact digital trajectory enters a cycle of only 4344 states after 565 iterations. The Q3.29 implementation similarly combines high Shannon entropy with detectable serial structure and a finite exact cycle.
+
+The experiment therefore motivates evaluating numerical representation, finite-state periodicity, serial statistics, and conditioning jointly rather than treating a high Shannon entropy estimate as evidence of cryptographic-quality entropy.
+
+The precision and periodicity results remain preliminary local smoke validation. Final conclusions require the planned multi-parameter and multi-replicate HPC campaign.
+
+### Detailed numerical reproducibility profile
+
+The Logistic Map precision study is a controlled comparison of numerical representations. The underlying map, extraction rule, logical parameters, and output length are held constant while the arithmetic representation is changed.
+
+The evaluated recurrence is:
+
+`x[n+1] = r * x[n] * (1 - x[n])`
+
+The currently implemented arithmetic modes are:
+
+- `float32` — IEEE-754 binary32
+- `float64` — IEEE-754 binary64 and the backward-compatible default
+- `fixed_q3_29` — project-defined unsigned fixed-point Q3.29 profile
+- `mpfr_256` — MPFR with 256-bit precision
+
+MPFR-256 is used as a high-precision digital reference. It is not interpreted as an infinite-precision chaotic system or as a physical entropy source.
+
+#### Binary32 arithmetic profile
+
+For `float32`, both the current state and parameter `r` are explicitly converted to C++ `float` before each recurrence.
+
+The evaluated expression is:
+
+`next = (r * x) * (1.0F - x)`
+
+The resulting binary32 state is stored through the common source interface, but the next iteration again explicitly converts the value to binary32. Therefore the recurrence follows an IEEE-754 binary32 trajectory.
+
+#### Binary64 arithmetic profile
+
+The `float64` backend preserves the original implementation:
+
+`state = (config.r * state) * (1.0 - state)`
+
+The parenthesization is intentional and forms part of the numerical reproduction profile.
+
+Publication builds must not silently use `-ffast-math`, floating-point reassociation, or other transformations that can change the deterministic trajectory.
+
+#### Fixed-point Q3.29 profile
+
+The fixed-point sensitivity profile uses:
+
+`S = 2^29`
+
+Parameter and state quantization are:
+
+`R = floor(r * S)`
+
+`X = floor(x * S)`
+
+The recurrence is:
+
+`X[n+1] = floor(R * X[n] * (S - X[n]) / S^2)`
+
+Integer division defines the truncation rule.
+
+A GCC/Clang unsigned 128-bit integer intermediate is used to evaluate the multiplication without overflow.
+
+This Q3.29 representation is a project-defined numerical-sensitivity profile. It is not claimed to reproduce a specific external hardware implementation.
+
+#### MPFR-256 profile
+
+The MPFR backend uses:
+
+- precision: 256 bits
+- rounding mode: `MPFR_RNDN`
+- recurrence order corresponding to `(r*x)*(1-x)`
+
+For explicit configurations, the original decimal YAML literals for `r` and `x0` are preserved and passed directly to MPFR.
+
+This prevents the high-precision reference from first inheriting binary64 quantization of those parameters.
+
+### Regression vectors
+
+The arithmetic implementations are protected by deterministic regression vectors.
+
+For the regression configuration:
+
+- `r = 4.0`
+- `x0 = 0.123456789`
+- `burn_in = 10`
+- threshold extraction
+
+the reference prefixes are:
+
+| arithmetic | reference prefix |
+|---|---|
+| float64 | `15 cd fc 5e` |
+| float32 | `15 c4 f7 fe` |
+| fixed_q3_29 | `15 cd 6d 57` |
+| mpfr_256 | `15 cd fc 5e 5f 1a 00 fb` |
+
+The MPFR and binary64 trajectories share the first four bytes for this regression configuration but diverge afterwards.
+
+Reset reproducibility is tested independently for every arithmetic backend.
+
+### Controlled precision smoke configuration
+
+The local numerical-sensitivity smoke used:
+
+- `r = 4.000000000000000`
+- `x0 = 0.79740852937250928`
+- `burn_in = 1000`
+- `output_bits = 1,000,000`
+- extraction = threshold
+- conditioning = RAW
+
+Only the numerical representation changes between the four runs.
+
+### Full-stream reproducibility fingerprints
+
+The 1,000,000-bit RAW smoke streams produced:
+
+| arithmetic | SHA-256 |
+|---|---|
+| float32 | `700d731b840b5c473ee0b9d5714f8a8c8da0f38c49604738bd5b4bdfc4985884` |
+| float64 | `246d5c99852d4274881807a3dd58d601e9f00962858b6682861804a1ebdc3979` |
+| fixed_q3_29 | `5b6211ec9dd54fdec383eeec97a3e3c97d9bb75c44ca57e49911838fa0a021b9` |
+| mpfr_256 | `63f26141c9093230f1f6e9a3f573367e7c14fafd674cb22fb34caca764735b56` |
+
+All four streams are distinct.
+
+### Local precision smoke statistics
+
+| arithmetic | bias | Shannon H | lag-1 autocorrelation | runs z | longest run |
+|---|---:|---:|---:|---:|---:|
+| float32 | 0.008979 | 0.9997673603 | 0.0208452531 | -20.8462434 | 11 |
+| float64 | 0.000391 | 0.9999995589 | -0.0009416115 | 0.9406126 | 21 |
+| fixed_q3_29 | 0.005686 | 0.9999067116 | 0.0202783202 | -20.2793103 | 12 |
+| mpfr_256 | 0.000431 | 0.9999994640 | -0.0001837434 | 0.1827433 | 21 |
+
+For this configuration, `float32` and Q3.29 show substantially stronger serial defects than binary64 and MPFR-256 despite retaining very high Shannon entropy.
+
+This is a local smoke result and must not yet be generalized to the entire Logistic Map parameter space.
+
+### Exact digital-state periodicity
+
+Exact digital periodicity is evaluated separately from ordinary bitstream statistics.
+
+The implementation uses Brent cycle detection and reports:
+
+- whether an exact recurrence was detected,
+- transient length `mu`,
+- state-cycle length `lambda`,
+- state-transition evaluations.
+
+State equality is exact equality of the represented digital state.
+
+No epsilon or approximate floating-point comparison is used.
+
+### Brent detector validation
+
+The generic detector is regression-tested on synthetic systems with known behavior:
+
+1. a seven-state pure cycle with expected `mu = 0`, `lambda = 7`;
+2. a transient followed by a fixed point with expected `mu = 3`, `lambda = 1`;
+3. a bounded non-repeating sequence used to verify that a cycle is not falsely reported inside the search horizon.
+
+The Logistic Map experiment additionally compares cycle measurements from the original initial state and after the normal 1000-iteration burn-in.
+
+### Periodicity smoke configuration
+
+The periodicity probe used the same logical parameters as the precision smoke:
+
+- `r = 4.000000000000000`
+- `x0 = 0.79740852937250928`
+- cycle-search bound = 10,000,000 state transitions
+
+Two probes were performed:
+
+1. from the original `x0`, with `burn_in = 0`;
+2. after the standard `burn_in = 1000`.
+
+### Periodicity from the original initial state
+
+| arithmetic | mu | lambda | result |
+|---|---:|---:|---|
+| float32 | 565 | 4344 | exact cycle detected |
+| float64 | NA | NA | no exact recurrence detected within 10^7 transitions |
+| fixed_q3_29 | 3173 | 6876 | exact cycle detected |
+| mpfr_256 | NA | NA | no exact recurrence detected within 10^7 transitions |
+
+### Periodicity after burn-in 1000
+
+| arithmetic | post-burn-in mu | lambda | result |
+|---|---:|---:|---|
+| float32 | 0 | 4344 | exact cycle detected |
+| float64 | NA | NA | no exact recurrence detected within 10^7 transitions |
+| fixed_q3_29 | 2173 | 6876 | exact cycle detected |
+| mpfr_256 | NA | NA | no exact recurrence detected within 10^7 transitions |
+
+The Q3.29 measurements provide an internal consistency check:
+
+`3173 - 1000 = 2173`
+
+while the detected state-cycle length remains `6876`.
+
+For binary32, the trajectory reaches its exact cycle after only 565 iterations. Since the standard burn-in is 1000 iterations, the measured post-burn-in stream starts after the state has already entered the cycle. Consequently the second probe reports `mu = 0` while retaining `lambda = 4344`.
+
+### State-cycle length versus output-bit period
+
+The reported `lambda` is the period of the exact internal digital state.
+
+The output bit is a deterministic function of that state. Therefore the eventual output sequence is also periodic after the state enters its cycle.
+
+However, the minimal output-bit period can be a proper divisor of the internal state-cycle length.
+
+Consequently, `lambda = 4344` does not by itself establish that the minimal binary32 bit period is exactly 4344. Likewise, `lambda = 6876` does not establish that the minimal Q3.29 bit period is exactly 6876.
+
+A separate minimal bit-period measurement can be added if required.
+
+### Censored cycle-search interpretation
+
+For binary64 and MPFR-256, no exact recurrence was observed inside the configured search horizon of 10^7 transitions.
+
+These observations are treated as censored search results.
+
+They do not demonstrate:
+
+- aperiodicity,
+- absence of a finite digital cycle,
+- cryptographic unpredictability,
+- cryptographic entropy.
+
+The correct statement is only that no exact recurrence was detected within the tested transition bound.
+
+### Scientific interpretation
+
+The local results demonstrate an important limitation of Shannon entropy as an isolated diagnostic.
+
+The binary32 stream has Shannon entropy of approximately `0.99977 bits/bit`, yet its represented digital state reaches an exact cycle of only 4344 states after a transient of 565 iterations.
+
+Similarly, Q3.29 retains Shannon entropy above `0.9999 bits/bit` while showing strong serial structure and an exact state cycle of 6876 states.
+
+For this configuration, binary64 and MPFR-256 show much weaker defects in the basic statistical diagnostics and no exact recurrence within the 10^7-step search horizon.
+
+The experiment therefore motivates jointly evaluating numerical representation, exact finite-state periodicity, serial statistics, and conditioning rather than treating near-maximal Shannon entropy as evidence of cryptographic-quality entropy.
+
+### Limitations and next precision-study steps
+
+The current results come from a single controlled `r,x0` smoke configuration.
+
+They establish that numerical representation can materially alter the deterministic trajectory and can expose short finite-state cycles, but they do not establish population-level behavior.
+
+The final HPC campaign should extend this analysis to a controlled collection of Logistic Map configurations and evaluate:
+
+- frequency of detected cycles by arithmetic representation;
+- distributions of `mu` and `lambda`;
+- association between short cycles and serial statistical defects;
+- sensitivity across Logistic Map parameters and replicates;
+- RAW versus Ascon-XOF128 behavior;
+- selected deeper statistical batteries for representative trajectories;
+- optionally, the minimal output-bit period;
+- optionally, larger cycle-search bounds for selected binary64 and MPFR-256 representatives.
+
