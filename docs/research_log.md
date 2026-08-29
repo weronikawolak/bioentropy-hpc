@@ -4507,3 +4507,111 @@ semantics must be separated: two experiments can have different derived
 framework seeds while still producing exactly the same source
 bitstream if that particular source configuration does not consume the
 seed.
+
+
+### DNA Dieharder capacity limitation
+
+A standard 400,000-nucleotide DNA window maps to 800,000 bits
+(100,000 bytes).
+
+The validated local Dieharder screening subset was applied to one such
+window as a capacity experiment.
+
+Every tested invocation reused the finite input file.
+
+The number of rewinds ranged from 41 to 92 depending on the test.
+
+Therefore all produced DNA Dieharder p-values were classified as
+INVALID, regardless of Dieharder's textual PASS, WEAK, or FAIL label.
+
+This result is an input-size limitation, not evidence that the tested
+DNA window failed the statistical battery.
+
+The project explicitly rejects two potentially misleading solutions:
+
+- looping/repeating the same DNA window;
+- reducing test parameters only for DNA and then directly comparing
+  those results with the standard digital-source screening.
+
+Instead, individual versioned windows remain the biological replication
+units.
+
+For external-battery diagnostics, a separate pooled DNA corpus will be
+constructed from distinct preselected windows without repetition.
+
+Corpus-level results will be labeled separately and will not be treated
+as replicate-level DNA evidence.
+
+
+### DNA corpus-level external-battery result
+
+The single-window Dieharder capacity experiment demonstrated that
+100,000 bytes of mapped DNA were insufficient for every test in the
+validated external-battery subset.
+
+A separate pooled DNA corpus was therefore constructed from all 50
+distinct versioned reference windows.
+
+Corpus properties:
+
+- 50 windows;
+- 20,000,000 nucleotides;
+- 40,000,000 mapped bits;
+- 5,000,000 bytes;
+- no repeated windows;
+- no artificial looping;
+- no separators between window bitstreams.
+
+Corpus SHA-256:
+
+`f2ea67e8a6d33cb7b6aa6bfd95a2eab960d323f87acd77128714e7f4609c2c93`
+
+A manifest records the deterministic concatenation order and the
+fingerprint of every constituent bitstream.
+
+The corpus was large enough to execute six Dieharder test families
+without file reuse:
+
+- Birthdays;
+- Count the 1s (stream);
+- Diehard Runs;
+- STS Monobit;
+- STS Runs;
+- STS Serial.
+
+Four other tests still rewound the 5 MB corpus once and their outputs
+were discarded as INVALID.
+
+Among the 36 valid result rows:
+
+- 2 were PASS;
+- 3 were WEAK;
+- 31 were FAIL.
+
+The two Diehard Runs rows passed.
+
+Birthdays and STS Monobit produced borderline WEAK results.
+
+STS Runs failed.
+
+Count the 1s (stream) failed.
+
+STS Serial showed strong rejection across nearly every tuple order above
+the first-order result.
+
+Because the STS Serial outputs are related subtests, the row count is
+not interpreted as a count of independent failures.
+
+Instead, the result provides evidence of strong higher-order serial
+structure in the pooled mapped DNA corpus.
+
+This observation is especially relevant because individual DNA windows
+frequently exhibit Shannon entropy close to one bit per mapped bit.
+
+The combination demonstrates that a high first-order Shannon entropy
+estimate can coexist with substantial higher-order dependence.
+
+The result is intentionally described as corpus-level evidence.
+
+It does not establish that every individual biological window would
+independently produce the same Dieharder outcome.

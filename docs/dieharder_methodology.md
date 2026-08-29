@@ -322,3 +322,183 @@ configured source does not consume that seed.
 
 This source-specific replication policy will be used by all subsequent
 statistical campaigns.
+
+
+## DNA finite-input policy
+
+A dedicated capacity experiment was performed for one standard DNA
+window.
+
+The evaluated DNA window contained:
+
+- 400,000 nucleotides;
+- 800,000 mapped bits;
+- 100,000 binary bytes.
+
+The same validated Dieharder subset used for 16 MiB digital-source
+screening was applied without changing test parameters.
+
+None of the tested Dieharder tests could consume the 100 kB DNA window
+without reusing input.
+
+Observed input rewinds included:
+
+- d0: 41 rewinds
+- d2: 91 rewinds
+- d4: 50 rewinds
+- d8: 42 rewinds
+- d9: 91 rewinds
+- d15: 44 rewinds
+- d16: 92 rewinds
+- d100: 44 rewinds
+- d101: 44 rewinds
+- d102: 44 rewinds
+
+Consequently, every p-value produced by this experiment is classified
+as INVALID.
+
+Nominal PASS, WEAK, or FAIL labels printed by Dieharder for these runs
+must not be interpreted as properties of the DNA sequence.
+
+### Decision
+
+The project will not reduce Dieharder test parameters specifically for
+DNA merely to make a single 100 kB window fit the battery.
+
+Such a change would create a different statistical testing regime and
+weaken direct comparison with the digital-source screening profile.
+
+Instead, two levels of DNA analysis are distinguished:
+
+1. individual DNA windows remain the primary biological units for
+   source statistics and replicate-level analysis;
+
+2. a separately identified concatenated DNA corpus may be used for
+   corpus-level external-battery diagnostics when sufficient unique
+   biological data are available.
+
+A concatenated DNA corpus is not interpreted as one independent DNA
+replicate.
+
+Its results characterize the pooled mapped corpus and are reported
+separately from per-window inference.
+
+No DNA window is repeated or looped to satisfy an external battery's
+input requirement.
+
+
+## DNA corpus-level Dieharder diagnostic
+
+Because a single 400,000-nucleotide DNA window provides only 100,000
+binary bytes and is insufficient for the validated Dieharder profile,
+a separate corpus-level diagnostic input was constructed.
+
+### Corpus construction
+
+The corpus contains 50 distinct preselected versioned DNA windows.
+
+Each window contributes:
+
+- 400,000 nucleotides;
+- 800,000 mapped bits;
+- 100,000 bytes.
+
+Total corpus size:
+
+- 50 windows;
+- 20,000,000 nucleotides;
+- 40,000,000 mapped bits;
+- 5,000,000 bytes.
+
+Corpus SHA-256:
+
+`f2ea67e8a6d33cb7b6aa6bfd95a2eab960d323f87acd77128714e7f4609c2c93`
+
+The windows are concatenated without separators.
+
+Their ordering is deterministic and recorded in a manifest using:
+
+1. assembly accession;
+2. sequence accession;
+3. window start;
+4. experiment identifier.
+
+Each individual window bitstream is also recorded together with its own
+SHA-256 fingerprint.
+
+The concatenated corpus is explicitly treated as a pooled diagnostic
+object and not as one biological replicate.
+
+### Capacity result
+
+The 5 MB corpus was sufficient for the following tests without input
+reuse:
+
+- d0   Diehard Birthdays
+- d8   Diehard Count the 1s (stream)
+- d15  Diehard Runs
+- d100 STS Monobit
+- d101 STS Runs
+- d102 STS Serial
+
+The following tests still required one file rewind and were therefore
+classified as INVALID:
+
+- d2   Diehard 32x32 Binary Rank
+- d4   Diehard Bitstream
+- d9   Diehard Count the 1s (byte)
+- d16  Diehard Craps
+
+No result from those four tests is used for scientific interpretation.
+
+### Valid corpus-level results
+
+Across the 36 rows that did not reuse input:
+
+- PASS: 2
+- WEAK: 3
+- FAIL: 31
+
+The two PASS rows were the two outputs of Diehard Runs.
+
+The WEAK observations were:
+
+- Diehard Birthdays:
+  p = 0.00103340
+- STS Monobit:
+  p = 0.00010563
+- STS Serial, ntuple 1:
+  p = 0.00010563
+
+The valid FAILED results included:
+
+- STS Runs:
+  p = 1.00000000
+- Diehard Count the 1s (stream):
+  p = 0.00000000
+- STS Serial for essentially all evaluated tuple orders above ntuple 1.
+
+The multiple STS Serial rows are related subtests and must not be
+treated as independent experimental replicates.
+
+The appropriate interpretation is therefore not "31 independent
+failures", but that the pooled mapped DNA corpus exhibits strong and
+consistently detectable serial structure across the STS Serial family.
+
+### Interpretation limits
+
+This corpus-level result does not imply that every individual DNA window
+would independently fail the same tests.
+
+It characterizes the pooled mapped corpus.
+
+Likewise, the high Shannon entropy observed for many individual DNA
+windows must not be interpreted as absence of serial structure.
+
+The DNA results reinforce a central distinction in this project:
+
+near-maximal first-order Shannon entropy can coexist with substantial
+higher-order statistical dependence.
+
+The corpus-level Dieharder result is therefore reported separately from
+the per-window biological analysis.
