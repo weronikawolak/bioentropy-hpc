@@ -64,16 +64,26 @@ def parse_file(path):
     stem = path.stem
 
     source = stem
+    replicate_id = ""
     test_number = ""
 
-    match = re.match(
+    campaign_match = re.match(
+        r"(.+)-rep(\d+)-d(\d+)$",
+        stem,
+    )
+
+    simple_match = re.match(
         r"(.+)-d(\d+)$",
         stem,
     )
 
-    if match:
-        source = match.group(1)
-        test_number = match.group(2)
+    if campaign_match:
+        source = campaign_match.group(1)
+        replicate_id = campaign_match.group(2)
+        test_number = campaign_match.group(3)
+    elif simple_match:
+        source = simple_match.group(1)
+        test_number = simple_match.group(2)
 
     rows = []
 
@@ -139,6 +149,7 @@ def parse_file(path):
         rows.append(
             {
                 "source": source,
+                "replicate_id": replicate_id,
                 "test_number": test_number,
                 "test_name": test_name,
                 "ntup": fields[1],
@@ -178,6 +189,7 @@ def main():
 
     columns = [
         "source",
+        "replicate_id",
         "test_number",
         "test_name",
         "ntup",

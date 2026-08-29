@@ -4615,3 +4615,106 @@ The result is intentionally described as corpus-level evidence.
 
 It does not establish that every individual biological window would
 independently produce the same Dieharder outcome.
+
+
+### Paired Dieharder precision validation
+
+A replicate-aware Dieharder validation campaign was executed before the
+full multi-replicate campaign.
+
+The campaign contained ten source groups:
+
+- Logistic Map float32
+- Logistic Map float64
+- Logistic Map Q3.29
+- Logistic Map MPFR-256
+- Chen 4D-DCS float64
+- Rule30, width 256
+- Rule30, width 1024
+- Rule90, width 256
+- Rule90, width 1024
+- ChaCha20 reference
+
+Each validation stream contained:
+
+- 16,777,216 bytes;
+- 134,217,728 bits.
+
+The validated Dieharder profile was:
+
+`0, 2, 4, 8, 9, 15, 16, 100, 101, 102`
+
+with `psamples = 1`.
+
+No input file was rewound in any validation execution.
+
+The parser produced 410 rows in total.
+
+#### Result summary
+
+| Source | PASS | WEAK | FAIL | INVALID |
+|---|---:|---:|---:|---:|
+| ChaCha20 | 40 | 1 | 0 | 0 |
+| Chen 4D-DCS | 40 | 1 | 0 | 0 |
+| Logistic Q3.29 | 0 | 0 | 41 | 0 |
+| Logistic float32 | 0 | 0 | 41 | 0 |
+| Logistic float64 | 40 | 1 | 0 | 0 |
+| Logistic MPFR-256 | 40 | 1 | 0 | 0 |
+| Rule30 width 1024 | 39 | 2 | 0 | 0 |
+| Rule30 width 256 | 40 | 0 | 1 | 0 |
+| Rule90 width 1024 | 0 | 0 | 40 | 1 |
+| Rule90 width 256 | 0 | 0 | 40 | 1 |
+
+The INVALID Rule90 rows were non-finite STS Runs results and were not
+caused by input reuse.
+
+#### Matched Logistic precision design
+
+All four Logistic arithmetic implementations used the same nominal
+initial state in the validation replicate:
+
+`x0 = 0.63481853342071715`
+
+with the same map parameters and extraction rule.
+
+Consequently, the large difference between the four implementations
+cannot be attributed to different nominal dynamical initial conditions.
+
+Both float32 and Q3.29 were rejected in every valid output row of the
+selected Dieharder profile.
+
+In contrast, float64 and MPFR-256 each produced 40 PASS rows and one
+WEAK row, with no FAIL results.
+
+The result provides strong preliminary evidence that finite numerical
+representation can dominate the statistical properties of a
+digitally implemented chaotic source.
+
+This conclusion concerns the evaluated digital implementations and does
+not imply a corresponding property of the ideal real-valued Logistic
+Map.
+
+#### Other validation observations
+
+ChaCha20 produced one WEAK STS Serial result and no failures.
+
+Chen 4D-DCS produced one WEAK Diehard Craps result and no failures for
+the tested non-reference initial state.
+
+Rule30 width 1024 produced two WEAK STS Serial rows and no failures.
+
+Rule30 width 256 produced one valid Diehard Craps failure. This single
+replicate is insufficient to determine whether the result is a
+persistent property of the source configuration or an isolated
+statistical outcome.
+
+Both Rule90 configurations were strongly rejected, confirming the
+intended negative-control behavior.
+
+#### Decision
+
+The 16 MiB test size and the selected Dieharder profile are now frozen
+for the multi-replicate digital-source campaign.
+
+Source-level interpretation will be based on repeated realizations
+rather than the individual validation replicate.

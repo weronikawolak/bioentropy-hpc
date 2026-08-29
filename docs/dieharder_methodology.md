@@ -502,3 +502,52 @@ higher-order statistical dependence.
 
 The corpus-level Dieharder result is therefore reported separately from
 the per-window biological analysis.
+
+
+## Frozen digital-source screening profile
+
+Following the replicate-aware validation campaign, the primary
+digital-source Dieharder screening profile is frozen as follows.
+
+Input per realization:
+
+- 16 MiB;
+- 134,217,728 bits;
+- no input reuse permitted.
+
+Tests:
+
+- d0
+- d2
+- d4
+- d8
+- d9
+- d15
+- d16
+- d100
+- d101
+- d102
+
+Dieharder configuration:
+
+- generator 201 (`file_input_raw`);
+- `psamples = 1`.
+
+The complete ten-source validation produced zero file rewinds.
+
+Therefore a rewind observed in the final campaign is treated as an
+execution anomaly and invalidates the corresponding row.
+
+The final campaign uses multiple explicit source realizations rather
+than increasing Dieharder's internal p-sample count.
+
+This makes the experimental unit visible and reproducible in the
+BioEntropy-HPC framework and enables source-specific replication
+semantics.
+
+The primary analysis will examine repeated p-values and recurring
+test-family patterns across realizations.
+
+Raw row counts are retained for traceability but are not interpreted as
+independent-test failure rates because some Dieharder invocations,
+especially STS Serial, emit multiple related result rows.
