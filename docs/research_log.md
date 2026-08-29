@@ -3511,3 +3511,170 @@ approximately 432x at sixteen effective passes.
 These measurements are software measurements from the BioEntropy HPC
 reference environment and must not be compared directly with the FPGA
 throughput reported by Fetteha et al.
+
+---
+
+# Paired RAW vs Ascon-XOF128 local end-to-end smoke
+
+A final local paired-conditioning smoke experiment was completed before
+the full HPC campaign.
+
+Five source families were evaluated:
+
+- Logistic Map,
+- CA Rule30,
+- CA Rule90 negative control,
+- public DNA sequence,
+- ChaCha20 deterministic cryptographic reference.
+
+Each source was evaluated twice:
+
+- RAW,
+- Ascon-XOF128 conditioned.
+
+For every pair, the source configuration, seed, replicate identifier,
+parameters and requested source output were identical.
+
+The validator additionally verified:
+
+RAW bitstream SHA-256
+==
+Ascon-XOF128 pre-conditioning input SHA-256.
+
+Therefore every RAW/XOF comparison used exactly the same source stream.
+
+The conditioned output length was preserved.
+
+## Local smoke results
+
+### Logistic Map
+
+RAW:
+
+- bias: ~0.000391
+- Shannon entropy: ~0.99999956 bits/bit
+- lag-1 autocorrelation: ~-0.000942
+- runs z-score: ~0.941
+- longest run: 21
+
+Ascon-XOF128:
+
+- bias: ~0.000538
+- Shannon entropy: ~0.99999916 bits/bit
+- lag-1 autocorrelation: ~0.000572
+- runs z-score: ~-0.573
+- longest run: 20
+
+The selected smoke stream already showed near-random basic statistics.
+Conditioning therefore produced no systematic improvement visible from
+this single smoke replicate.
+
+### CA Rule30
+
+RAW:
+
+- bias: ~0.000427
+- Shannon entropy: ~0.99999947 bits/bit
+- lag-1 autocorrelation: ~-0.001290
+- runs z-score: ~1.289
+- longest run: 19
+
+Ascon-XOF128:
+
+- bias: ~0.000442
+- Shannon entropy: ~0.99999944 bits/bit
+- lag-1 autocorrelation: ~-0.000244
+- runs z-score: ~0.243
+- longest run: 19
+
+Rule30 also displayed near-random basic statistics before conditioning
+in this smoke replicate.
+
+### CA Rule90 negative control
+
+RAW:
+
+- bias: ~0.483612
+- Shannon entropy: ~0.120649 bits/bit
+- lag-1 autocorrelation: ~0.498447
+- runs z-score: ~-498.47
+- longest run: 967488
+
+Ascon-XOF128:
+
+- bias: ~0.000650
+- Shannon entropy: ~0.999999 bits/bit
+- lag-1 autocorrelation: ~-0.000737
+- runs z-score: ~0.736
+- longest run: 22
+
+This is the most important local conditioning sanity check.
+
+The deterministic Rule90 source has severe visible statistical defects,
+yet its Ascon-XOF128 output exhibits near-random values for the basic
+metrics considered here.
+
+This demonstrates that post-conditioning statistical quality must not
+be interpreted as evidence that additional source entropy has been
+created.
+
+### Public DNA sequence
+
+The final DNA smoke used a real 400000-nucleotide reference window,
+mapped to 800000 output bits.
+
+RAW:
+
+- bias: ~0.001406
+- Shannon entropy: ~0.99999429 bits/bit
+- lag-1 autocorrelation: ~0.023226
+- runs z-score: ~-20.775
+- longest run: 19
+
+Ascon-XOF128:
+
+- bias: ~0.000400
+- Shannon entropy: ~0.99999954 bits/bit
+- lag-1 autocorrelation: ~0.001078
+- runs z-score: ~-0.965
+- longest run: 18
+
+The DNA stream is particularly informative because its single-bit
+Shannon entropy is already close to the theoretical maximum while its
+serial metrics reveal substantial non-random structure.
+
+This directly illustrates why Shannon entropy alone is insufficient for
+evaluating candidate randomness sources.
+
+Ascon-XOF128 strongly reduced the visible serial defects.
+
+This improvement must be interpreted as conditioning of observable
+statistical structure, not creation of physical entropy.
+
+### ChaCha20 reference
+
+RAW and conditioned ChaCha20 outputs both exhibited near-random basic
+statistics.
+
+This behavior is consistent with its role as a deterministic
+cryptographic-reference generator rather than an entropy source.
+
+## Interpretation and scope
+
+This experiment is a local end-to-end validation, not the final
+statistical campaign.
+
+Only one representative stream per source family was evaluated.
+
+The smoke demonstrates that:
+
+1. paired RAW/XOF execution is reproducible,
+2. source provenance is preserved,
+3. output length is preserved,
+4. basic statistics are computed on the intended stream,
+5. strong source defects can be hidden by conditioning,
+6. high Shannon entropy alone does not imply absence of serial
+   structure.
+
+Final quantitative conclusions will be based on the full replicated
+HPC campaign and subsequent deep statistical testing.
