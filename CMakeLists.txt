@@ -225,3 +225,20 @@ add_test(
     NAME ascon-xof128-conditioner-test
     COMMAND ascon-xof128-conditioner-test
 )
+
+
+add_executable(
+    experiment-config-conditioning-test
+    tests/test_experiment_config_conditioning.cpp
+)
+
+target_link_libraries(
+    experiment-config-conditioning-test
+    PRIVATE
+        bioentropy_core
+)
+
+add_test(
+    NAME experiment-config-conditioning-test
+    COMMAND experiment-config-conditioning-test
+)

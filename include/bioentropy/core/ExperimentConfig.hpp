@@ -8,6 +8,18 @@
 
 namespace bioentropy {
 
+enum class ConditioningMode {
+    Raw,
+    AsconXof128
+};
+
+struct ConditioningConfig {
+    ConditioningMode mode{
+        ConditioningMode::Raw
+    };
+};
+
+
 struct ExecutionConfig {
     std::uint64_t chunk_bytes{1'048'576};
 };
@@ -18,6 +30,7 @@ struct ExperimentConfig {
     std::string master_seed;
 
     SourceConfig source;
+    ConditioningConfig conditioning;
     ExecutionConfig execution;
 
     static ExperimentConfig from_yaml(

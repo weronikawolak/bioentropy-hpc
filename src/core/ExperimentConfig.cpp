@@ -26,6 +26,23 @@ bool is_valid_hex_seed(const std::string& seed) {
     );
 }
 
+ConditioningMode parse_conditioning_mode(
+    const std::string& value
+) {
+    if (value == "raw") {
+        return ConditioningMode::Raw;
+    }
+
+    if (value == "ascon_xof128") {
+        return ConditioningMode::AsconXof128;
+    }
+
+    throw std::invalid_argument(
+        "unsupported conditioning mode: "
+        + value
+    );
+}
+
 LogisticInitialStateMode parse_initial_state_mode(
     const std::string& value
 ) {
@@ -317,6 +334,9 @@ ExperimentConfig ExperimentConfig::from_yaml(
         const YAML::Node source =
             root["source"];
 
+        const YAML::Node conditioning =
+            root["conditioning"];
+
         const YAML::Node execution =
             root["execution"];
 
@@ -349,6 +369,20 @@ ExperimentConfig ExperimentConfig::from_yaml(
         config.source.output_bits =
             source["output_bits"]
                 .as<std::uint64_t>();
+
+        if (conditioning) {
+            if (!conditioning["mode"]) {
+                throw std::invalid_argument(
+                    "missing conditioning.mode"
+                );
+            }
+
+            config.conditioning.mode =
+                parse_conditioning_mode(
+                    conditioning["mode"]
+                        .as<std::string>()
+                );
+        }
 
         if (
             execution &&
