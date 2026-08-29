@@ -34,6 +34,9 @@ add_library(
     src/io/ResultWriter.cpp
     src/conditioning/AsconXof128Conditioner.cpp
     src/conditioning/ascon_xof128_variable.c
+    src/crypto/AsconAead128.cpp
+    third_party/ascon-c/crypto_aead/asconaead128/ref/aead.c
+    third_party/ascon-c/crypto_aead/asconaead128/ref/printstate.c
 )
 
 target_include_directories(
@@ -43,6 +46,8 @@ target_include_directories(
     PRIVATE
         ${PROJECT_SOURCE_DIR}/src/conditioning
         ${PROJECT_SOURCE_DIR}/third_party/ascon-c/crypto_hash/asconxof128/ref
+        ${PROJECT_SOURCE_DIR}/third_party/ascon-c/crypto_aead/asconaead128/ref
+        ${PROJECT_SOURCE_DIR}/third_party/ascon-c/tests
 )
 
 target_link_libraries(
@@ -241,4 +246,21 @@ target_link_libraries(
 add_test(
     NAME experiment-config-conditioning-test
     COMMAND experiment-config-conditioning-test
+)
+
+
+add_executable(
+    ascon-aead128-test
+    tests/test_ascon_aead128.cpp
+)
+
+target_link_libraries(
+    ascon-aead128-test
+    PRIVATE
+        bioentropy_core
+)
+
+add_test(
+    NAME ascon-aead128-test
+    COMMAND ascon-aead128-test
 )
