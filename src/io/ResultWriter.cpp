@@ -44,6 +44,53 @@ std::string logistic_extraction_to_string(
     );
 }
 
+std::string conditioning_mode_to_string(
+    ConditioningMode mode
+) {
+    switch (mode) {
+        case ConditioningMode::Raw:
+            return "raw";
+
+        case ConditioningMode::AsconXof128:
+            return "ascon_xof128";
+    }
+
+    throw std::invalid_argument(
+        "unknown conditioning mode"
+    );
+}
+
+nlohmann::json conditioning_to_json(
+    const ExperimentResult& result
+) {
+    nlohmann::json document = {
+        {
+            "mode",
+            conditioning_mode_to_string(
+                result.conditioning_config.mode
+            )
+        },
+        {
+            "input_bits",
+            result.output_bits
+        },
+        {
+            "output_bits",
+            result.output_bits
+        }
+    };
+
+    if (
+        result.pre_conditioning_sha256
+            .has_value()
+    ) {
+        document["input_sha256"] =
+            *result.pre_conditioning_sha256;
+    }
+
+    return document;
+}
+
 nlohmann::json source_parameters_to_json(
     const SourceConfig& source
 ) {
@@ -263,7 +310,17 @@ ResultWriter::write_json(
         << "_rep"
         << std::setw(4)
         << std::setfill('0')
-        << result.replicate_id
+        << result.replicate_id;
+
+    if (
+        result.conditioning_config.mode ==
+        ConditioningMode::AsconXof128
+    ) {
+        filename
+            << "_ascon-xof128";
+    }
+
+    filename
         << ".json";
 
     const std::filesystem::path output_path =
@@ -306,6 +363,10 @@ ResultWriter::write_json(
                     )
                 }
             }
+        },
+        {
+            "conditioning",
+            conditioning_to_json(result)
         },
         {
             "execution",
