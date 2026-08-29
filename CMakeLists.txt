@@ -276,3 +276,15 @@ target_link_libraries(
     PRIVATE
         bioentropy_core
 )
+
+
+add_executable(
+    ascon-aead128-avalanche
+    src/benchmark/benchmark_ascon_aead128_avalanche.cpp
+)
+
+target_link_libraries(
+    ascon-aead128-avalanche
+    PRIVATE
+        bioentropy_core
+)
