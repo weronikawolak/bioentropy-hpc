@@ -4,8 +4,12 @@ project(
     BioEntropyHPC
     VERSION 0.1.0
     DESCRIPTION "HPC-assisted evaluation framework for bio-inspired randomness sources and lightweight cryptography"
-    LANGUAGES CXX
+    LANGUAGES C CXX
 )
+
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_EXTENSIONS OFF)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -28,12 +32,17 @@ add_library(
     src/sources/dna/DNASequenceSource.cpp
     src/metrics/BitstreamStatistics.cpp
     src/io/ResultWriter.cpp
+    src/conditioning/AsconXof128Conditioner.cpp
+    src/conditioning/ascon_xof128_variable.c
 )
 
 target_include_directories(
     bioentropy_core
     PUBLIC
         ${PROJECT_SOURCE_DIR}/include
+    PRIVATE
+        ${PROJECT_SOURCE_DIR}/src/conditioning
+        ${PROJECT_SOURCE_DIR}/third_party/ascon-c/crypto_hash/asconxof128/ref
 )
 
 target_link_libraries(
@@ -189,4 +198,30 @@ target_link_libraries(
 add_test(
     NAME serial-bitstream-metrics-test
     COMMAND serial-bitstream-metrics-test
+)
+
+
+add_executable(
+    ascon-xof128-conditioner-test
+    tests/test_ascon_xof128_conditioner.cpp
+    third_party/ascon-c/crypto_hash/asconxof128/ref/hash.c
+    third_party/ascon-c/crypto_hash/asconxof128/ref/printstate.c
+)
+
+target_include_directories(
+    ascon-xof128-conditioner-test
+    PRIVATE
+        ${PROJECT_SOURCE_DIR}/third_party/ascon-c/crypto_hash/asconxof128/ref
+        ${PROJECT_SOURCE_DIR}/third_party/ascon-c/tests
+)
+
+target_link_libraries(
+    ascon-xof128-conditioner-test
+    PRIVATE
+        bioentropy_core
+)
+
+add_test(
+    NAME ascon-xof128-conditioner-test
+    COMMAND ascon-xof128-conditioner-test
 )
