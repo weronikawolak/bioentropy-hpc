@@ -471,3 +471,40 @@ not be confused with the FPGA throughput reported in the source paper.
 The result demonstrates that the plaintext-dependent P parameter
 affects not only the observed differential behavior but also the
 computational cost of encryption.
+
+---
+
+## Common software comparison with Ascon-AEAD128
+
+A common 64 KiB benchmark harness compared the reproduced Fetteha
+construction against Ascon-AEAD128 using identical plaintext fixtures,
+timing methodology, warm-up count and repetition count.
+
+Observed encryption slowdowns of Fetteha relative to Ascon were:
+
+1 effective pass:
+~92x
+
+8 effective passes:
+~239x
+
+16 effective passes:
+~432x.
+
+Ascon maintained approximately 414-437 MiB/s in the common benchmark.
+
+Fetteha ranged approximately from:
+
+4.49 MiB/s at one pass
+
+to
+
+1.01 MiB/s at sixteen passes.
+
+Ascon ciphertext included a 16-byte authentication tag.
+
+Fetteha ciphertext had no expansion but does not provide an equivalent
+authenticated-encryption property.
+
+These are BioEntropy HPC software measurements and are separate from
+the FPGA performance reported in the source publication.

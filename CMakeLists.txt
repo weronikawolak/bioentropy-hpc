@@ -352,3 +352,15 @@ target_link_libraries(
     PRIVATE
         bioentropy_core
 )
+
+
+add_executable(
+    ascon-vs-fetteha-benchmark
+    src/benchmark/benchmark_ascon_vs_fetteha.cpp
+)
+
+target_link_libraries(
+    ascon-vs-fetteha-benchmark
+    PRIVATE
+        bioentropy_core
+)

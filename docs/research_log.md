@@ -3380,3 +3380,134 @@ corresponding to:
 
 This connects the previously observed P-dependent differential behavior
 with a substantial plaintext-dependent performance variation.
+
+---
+
+# Ascon-AEAD128 vs Fetteha 2023 — common 64 KiB benchmark
+
+A common benchmark harness was implemented to compare Ascon-AEAD128
+and the reproduced Fetteha 2023 image cipher under the same timing
+environment.
+
+Payload size:
+
+65536 bytes
+
+corresponding to a 256x256 grayscale image.
+
+Both algorithms were measured in the same executable using:
+
+- the same plaintext fixture,
+- the same steady clock,
+- 5 warm-up iterations,
+- 31 measured repetitions,
+- median execution time,
+- alternating benchmark order,
+- verified encrypt/decrypt round trips.
+
+Three representative Fetteha execution paths were evaluated:
+
+raw P=1  -> 1 effective pass
+raw P=8  -> 8 effective passes
+raw P=0  -> 16 effective passes
+
+## Encryption results
+
+P=1:
+
+Ascon-AEAD128:
+~151 us
+~413.9 MiB/s
+
+Fetteha:
+~13.92 ms
+~4.49 MiB/s
+
+Fetteha slowdown:
+~92.2x
+
+P=8:
+
+Ascon-AEAD128:
+~151 us
+~413.6 MiB/s
+
+Fetteha:
+~36.05 ms
+~1.73 MiB/s
+
+Fetteha slowdown:
+~238.6x
+
+P=16:
+
+Ascon-AEAD128:
+~143 us
+~436.8 MiB/s
+
+Fetteha:
+~61.89 ms
+~1.01 MiB/s
+
+Fetteha slowdown:
+~432.5x
+
+## Decryption
+
+The same overall behavior was observed during decryption.
+
+Approximate Fetteha slowdowns relative to Ascon were:
+
+P=1:
+~91.7x
+
+P=8:
+~244.6x
+
+P=16:
+~421.0x
+
+## Ciphertext expansion
+
+Ascon-AEAD128 produced:
+
+65552 bytes
+
+for a 65536-byte plaintext because the implementation includes the
+16-byte authentication tag.
+
+The Fetteha comparator produced:
+
+65536 bytes
+
+and therefore no ciphertext expansion.
+
+This size comparison must not be interpreted as equivalent security
+functionality.
+
+Ascon-AEAD128 provides authenticated encryption, including integrity
+and authenticity through its authentication tag.
+
+The reproduced Fetteha construction does not provide an equivalent
+AEAD authentication property.
+
+## Interpretation
+
+The standardized authenticated-encryption baseline substantially
+outperformed the reproduced DNA/chaos comparator even though Ascon
+provides a stronger security interface.
+
+The Fetteha runtime additionally depends strongly on the
+plaintext-derived P parameter.
+
+Therefore the performance gap is itself plaintext dependent:
+
+approximately 92x at one effective pass
+
+to
+
+approximately 432x at sixteen effective passes.
+
+These measurements are software measurements from the BioEntropy HPC
+reference environment and must not be compared directly with the FPGA
+throughput reported by Fetteha et al.
