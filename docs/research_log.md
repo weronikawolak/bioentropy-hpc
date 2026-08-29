@@ -2590,3 +2590,174 @@ Not yet executed at full scale:
 - crypto comparison with DNA cipher,
 - image-cipher NPCR/UACI campaign,
 - final HPC scaling experiments.
+
+---
+
+# DNA-based cipher reproduction — primitive implementation
+
+## Status
+
+DONE locally.
+
+The first implementation stage of the selected Zhang, Xue & Wei
+(2012) DNA subsequence image cipher has been completed.
+
+This stage intentionally implements only algorithmic primitives that
+are explicitly defined by the publication.
+
+The full image encryption and decryption procedures have not yet been
+implemented.
+
+## Implemented components
+
+Implemented:
+
+- paper-specific two-bit DNA encoding,
+- DNA decoding,
+- Watson-Crick complement,
+- one-dimensional Logistic Map step,
+- two-dimensional Logistic Map step.
+
+Files:
+
+include/bioentropy/crypto/DnaSubsequenceCipher2012.hpp
+
+src/crypto/DnaSubsequenceCipher2012.cpp
+
+tests/test_dna_subsequence_cipher_2012.cpp
+
+## Paper-specific DNA mapping
+
+The reproduced cipher uses:
+
+00 -> G
+01 -> A
+10 -> T
+11 -> C
+
+This mapping is specific to the Zhang et al. 2012 cipher.
+
+It remains separate from the genomic-source mapping used in the
+randomness-source experiments:
+
+A = 00
+C = 01
+G = 10
+T = 11
+
+## Published validation example
+
+The publication gives the example:
+
+75 decimal
+= 01001011 binary
+= A G T C
+
+This example is used directly as a unit-test anchor.
+
+## Exhaustive encoding validation
+
+All possible 8-bit values from 0 through 255 are tested using:
+
+byte
+-> DNA encoding
+-> DNA decoding
+-> original byte
+
+All round trips must reproduce the original byte exactly.
+
+## Watson-Crick complement
+
+The implementation follows:
+
+A <-> T
+
+C <-> G
+
+## Logistic maps
+
+The one-dimensional Logistic step is:
+
+x[n+1] =
+    mu * x[n] * (1 - x[n])
+
+The two-dimensional system is implemented using the equations
+reported in the selected publication.
+
+The default experimental parameters currently represented by the
+reproduction key structure are:
+
+x0 = 0.95
+mu1 = 3.2
+gamma1 = 0.17
+
+y0 = 0.25
+mu2 = 3.3
+gamma2 = 0.14
+
+## Validation status
+
+The primitive implementation is tested independently before any
+higher-level DNA subsequence operations are added.
+
+The next reproduction stage will implement:
+
+- the 1000-step two-dimensional Logistic warm-up,
+- extraction of values used to derive four one-dimensional
+  Logistic Maps,
+- generation of the four Logistic sequences.
+
+Any ambiguity in the publication's extraction procedure will be
+documented explicitly before it is incorporated into the full cipher.
+
+---
+
+# DNA-based cipher reproduction — primitive implementation
+
+## Status
+
+DONE locally.
+
+The first implementation stage of the Zhang, Xue & Wei (2012)
+DNA subsequence image cipher has been completed.
+
+Implemented components:
+
+- paper-specific DNA encoding and decoding,
+- Watson-Crick complement,
+- one-dimensional Logistic Map step,
+- two-dimensional Logistic Map step.
+
+The cipher-specific DNA mapping reproduced from the publication is:
+
+- 00 -> G
+- 01 -> A
+- 10 -> T
+- 11 -> C
+
+This mapping remains separate from the genomic-source mapping used
+elsewhere in the project.
+
+The publication example:
+
+75 decimal = 01001011 binary = AGTC
+
+is used as a direct unit-test anchor.
+
+BioEntropy HPC additionally verifies exact DNA encode/decode round-trip
+for all 256 possible byte values.
+
+The Logistic-map equations are reproduced from the selected
+publication, while the C++ class structure and exhaustive unit-testing
+approach are project-specific implementation choices.
+
+The full DNA-based image cipher is not yet implemented.
+
+The next stage is:
+
+1000-step 2D Logistic warm-up
+-> extraction of x1...x8
+-> derivation of four 1D Logistic Maps.
+
+Any ambiguity in the publication's extraction procedure will be
+documented before implementing that stage.

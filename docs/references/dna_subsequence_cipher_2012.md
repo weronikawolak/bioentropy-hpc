@@ -167,3 +167,26 @@ successive state values are used.
 This interpretation will be isolated in a dedicated function so that
 it can be changed without modifying the rest of the cipher if a more
 precise interpretation is later established.
+
+---
+
+# Primitive implementation milestone
+
+Implemented and unit-tested:
+
+- 2-bit DNA encoding,
+- DNA decoding,
+- Watson-Crick complement,
+- 1D Logistic step,
+- 2D Logistic step.
+
+The publication example:
+
+75 decimal = 01001011 = AGTC
+
+is used as a direct unit-test anchor.
+
+All 256 possible byte values are additionally tested for exact
+encode/decode round-trip correctness.
+
+The full encryption algorithm is not yet implemented.
