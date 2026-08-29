@@ -2924,9 +2924,10 @@ For each pass:
 - the pass output becomes the next pass input,
 - P is decremented after the complete image pass.
 
-The implementation additionally preserves the literal P=0 behavior:
-when the plaintext pixel sum is divisible by 16, zero passes are
-performed.
+A later consistency check against the publication's reported
+all-black and all-white experiments showed that raw P=0 cannot
+represent zero effective passes. The reproduction profile was therefore
+revised: raw P=0 is interpreted as 16 effective image passes.
 
 This control-flow interpretation is explicitly documented as a
 reproduction profile because the prose and pseudocode of the source

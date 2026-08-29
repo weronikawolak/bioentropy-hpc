@@ -44,6 +44,11 @@ struct DnaControlValues2023 {
     ) const = default;
 };
 
+struct FettehaEncryptionResult2023 {
+    std::vector<std::uint8_t> ciphertext;
+    std::uint8_t p{};
+};
+
 class FettehaDnaCipher2023 {
 public:
     using Key =
@@ -60,6 +65,11 @@ public:
     [[nodiscard]]
     static std::uint8_t iteration_count(
         std::span<const std::uint8_t> image
+    );
+
+    [[nodiscard]]
+    static std::uint8_t effective_pass_count(
+        std::uint8_t raw_p
     );
 
     [[nodiscard]]
@@ -179,6 +189,44 @@ public:
     encrypt_with_initial_state(
         std::span<const std::uint8_t> image,
         const LorenzState2023& initial_state
+    );
+
+    [[nodiscard]]
+    static std::uint8_t
+    dna_inverse_transform_pixel(
+        std::uint8_t pixel,
+        const DnaControlValues2023& controls
+    );
+
+    [[nodiscard]]
+    static std::vector<std::uint8_t>
+    decrypt_single_pass(
+        std::span<const std::uint8_t> ciphertext,
+        std::span<const DnaControlValues2023> controls,
+        bool flipped
+    );
+
+    [[nodiscard]]
+    static std::vector<std::uint8_t>
+    decrypt_with_initial_state(
+        std::span<const std::uint8_t> ciphertext,
+        const LorenzState2023& initial_state,
+        std::uint8_t p
+    );
+
+    [[nodiscard]]
+    static FettehaEncryptionResult2023
+    encrypt(
+        std::span<const std::uint8_t> image,
+        const Key& key
+    );
+
+    [[nodiscard]]
+    static std::vector<std::uint8_t>
+    decrypt(
+        std::span<const std::uint8_t> ciphertext,
+        const Key& key,
+        std::uint8_t p
     );
 };
 

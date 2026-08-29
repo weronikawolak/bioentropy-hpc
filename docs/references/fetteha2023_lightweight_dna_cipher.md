@@ -303,7 +303,7 @@ Implemented and tested:
 - normal traversal for even P,
 - reversed traversal for odd P,
 - pass-local feedback initialization,
-- P=0 zero-pass behavior.
+- explicit raw-P=0 to 16-effective-pass behavior.
 
 The P-loop structure is an explicitly documented reproduction
 interpretation.

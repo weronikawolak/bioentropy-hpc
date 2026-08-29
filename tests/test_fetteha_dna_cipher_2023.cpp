@@ -652,14 +652,20 @@ int main() {
 
 
     /*
-     * Full-pass reproduction profile.
+     * Reproduction profile v2:
      *
-     * P = 0 -> zero encryption passes.
+     * raw P=0 -> 16 effective passes.
+     *
+     * This is required to remain
+     * compatible with the publication's
+     * reported encryption of all-black
+     * images.
      */
     const std::vector<std::uint8_t>
-        p_zero_image{
-            0x10
-        };
+        p_zero_image(
+            64,
+            0x00
+        );
 
     require(
         FettehaDnaCipher2023::
@@ -667,17 +673,62 @@ int main() {
                 p_zero_image
             )
         == 0,
-        "P=0 fixture mismatch"
+        "raw P=0 fixture mismatch"
     );
 
     require(
         FettehaDnaCipher2023::
+            effective_pass_count(0)
+        == 16,
+        "raw P=0 must map to 16 passes"
+    );
+
+    auto expected_p_zero =
+        p_zero_image;
+
+    const auto p_zero_controls =
+        FettehaDnaCipher2023::
+            generate_control_sequence(
+                published_demo_initial,
+                p_zero_image.size()
+            );
+
+    for (
+        int pass = 16;
+        pass >= 1;
+        --pass
+    ) {
+        expected_p_zero =
+            FettehaDnaCipher2023::
+                encrypt_single_pass(
+                    expected_p_zero,
+                    p_zero_controls,
+                    (pass % 2) != 0
+                );
+    }
+
+    const auto actual_p_zero =
+        FettehaDnaCipher2023::
             encrypt_with_initial_state(
                 p_zero_image,
                 published_demo_initial
+            );
+
+    require(
+        actual_p_zero
+        == expected_p_zero,
+        "raw P=0 / 16-pass orchestration mismatch"
+    );
+
+    require(
+        FettehaDnaCipher2023::
+            decrypt_with_initial_state(
+                actual_p_zero,
+                published_demo_initial,
+                0
             )
         == p_zero_image,
-        "P=0 must leave input unchanged"
+        "raw P=0 round-trip mismatch"
     );
 
     /*
@@ -881,6 +932,129 @@ int main() {
             mapped_direct.z
         ),
         "full key-to-Lorenz mapping mismatch"
+    );
+
+
+    /*
+     * Full public encrypt/decrypt round-trip.
+     *
+     * Deterministic non-degenerate key:
+     *
+     * SHA256(
+     *   "BIOENTROPY-FETTEHA-ROUNDTRIP-v1"
+     * )
+     */
+    const FettehaDnaCipher2023::Key
+        roundtrip_key{
+            0xfc, 0x93, 0x22, 0x49,
+            0x33, 0x3c, 0x5f, 0xd1,
+            0x3b, 0xab, 0xc5, 0x1b,
+            0xe9, 0x9e, 0x2e, 0x39,
+            0x28, 0x68, 0x27, 0xb5,
+            0x33, 0x00, 0xcc, 0xa7,
+            0x38, 0x22, 0x7f, 0x90,
+            0x9b, 0xe8, 0x5b, 0xda
+        };
+
+    const auto roundtrip_state =
+        FettehaDnaCipher2023::
+            derive_initial_state(
+                roundtrip_key
+            );
+
+    require(
+        std::isfinite(roundtrip_state.x)
+        &&
+        std::isfinite(roundtrip_state.y)
+        &&
+        std::isfinite(roundtrip_state.z),
+        "round-trip key produced invalid state"
+    );
+
+    /*
+     * Exercise every possible P value:
+     *
+     * P = 0 ... 15.
+     */
+    for (
+        std::uint8_t expected_p = 0;
+        expected_p <= 15;
+        ++expected_p
+    ) {
+        std::vector<std::uint8_t>
+            image{
+                expected_p == 0
+                    ? static_cast<std::uint8_t>(16)
+                    : expected_p,
+                0,
+                0,
+                0
+            };
+
+        require(
+            FettehaDnaCipher2023::
+                iteration_count(image)
+            == expected_p,
+            "P fixture mismatch"
+        );
+
+        const auto encrypted =
+            FettehaDnaCipher2023::
+                encrypt(
+                    image,
+                    roundtrip_key
+                );
+
+        require(
+            encrypted.p == expected_p,
+            "returned P mismatch"
+        );
+
+        const auto decrypted =
+            FettehaDnaCipher2023::
+                decrypt(
+                    encrypted.ciphertext,
+                    roundtrip_key,
+                    encrypted.p
+                );
+
+        require(
+            decrypted == image,
+            "full encrypt/decrypt round-trip mismatch"
+        );
+    }
+
+    /*
+     * Larger image to exercise feedback,
+     * control evolution and reversal.
+     */
+    const std::vector<std::uint8_t>
+        larger_image{
+            13, 27, 41, 55,
+            69, 83, 97, 111,
+            125, 139, 153, 167,
+            181, 195, 209, 223
+        };
+
+    const auto larger_encrypted =
+        FettehaDnaCipher2023::
+            encrypt(
+                larger_image,
+                roundtrip_key
+            );
+
+    const auto larger_decrypted =
+        FettehaDnaCipher2023::
+            decrypt(
+                larger_encrypted.ciphertext,
+                roundtrip_key,
+                larger_encrypted.p
+            );
+
+    require(
+        larger_decrypted
+        == larger_image,
+        "larger-image round-trip mismatch"
     );
 
     std::cout

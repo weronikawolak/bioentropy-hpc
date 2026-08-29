@@ -113,6 +113,38 @@ FettehaDnaCipher2023::iteration_count(
     );
 }
 
+
+std::uint8_t
+FettehaDnaCipher2023::effective_pass_count(
+    const std::uint8_t raw_p
+) {
+    if (raw_p > 15U) {
+        throw std::invalid_argument(
+            "Raw P must be in [0, 15]"
+        );
+    }
+
+    /*
+     * BioEntropy HPC reproduction
+     * profile v2.
+     *
+     * The publication reports successful
+     * encryption of all-black images,
+     * for which sum(pixels) mod 16 = 0.
+     *
+     * Therefore raw P=0 cannot represent
+     * zero effective encryption passes if
+     * those reported results are to be
+     * reproduced.
+     *
+     * Interpret zero as sixteen effective
+     * passes.
+     */
+    return raw_p == 0U
+        ? 16U
+        : raw_p;
+}
+
 FettehaDnaCipher2023::KeyWords
 FettehaDnaCipher2023::split_key(
     const Key& key
@@ -654,23 +686,23 @@ FettehaDnaCipher2023::encrypt_with_initial_state(
             image.end()
         );
 
-    const std::uint8_t initial_p =
+    const std::uint8_t raw_p =
         iteration_count(image);
 
-    if (
-        initial_p == 0U
-        || image.empty()
-    ) {
+    if (image.empty()) {
         return current;
     }
 
     /*
-     * Reproduction profile v1:
+     * Reproduction profile v2:
      *
-     * P denotes complete image passes.
+     * raw P = sum(image) mod 16
+     *
+     * raw P=0 is interpreted as
+     * sixteen effective passes.
      */
     std::uint8_t p =
-        initial_p;
+        effective_pass_count(raw_p);
 
     /*
      * Algorithm 1 is interpreted as
@@ -699,6 +731,194 @@ FettehaDnaCipher2023::encrypt_with_initial_state(
     }
 
     return current;
+}
+
+
+std::uint8_t
+FettehaDnaCipher2023::dna_inverse_transform_pixel(
+    const std::uint8_t pixel,
+    const DnaControlValues2023& controls
+) {
+    auto pairs =
+        split_pixel_pairs(pixel);
+
+    /*
+     * Encryption performs:
+     *
+     * decode_Y(encode_X(pair))
+     *
+     * Therefore the inverse is:
+     *
+     * decode_X(encode_Y(pair))
+     */
+    for (
+        std::size_t i = 0;
+        i < pairs.size();
+        ++i
+    ) {
+        pairs[i] =
+            dna_transform_pair(
+                pairs[i],
+                controls.y_rules[i],
+                controls.x_rules[i]
+            );
+    }
+
+    return join_pixel_pairs(pairs);
+}
+
+std::vector<std::uint8_t>
+FettehaDnaCipher2023::decrypt_single_pass(
+    const std::span<const std::uint8_t> ciphertext,
+    const std::span<const DnaControlValues2023> controls,
+    const bool flipped
+) {
+    if (ciphertext.size() != controls.size()) {
+        throw std::invalid_argument(
+            "Ciphertext and control sequence sizes must match"
+        );
+    }
+
+    std::vector<std::uint8_t>
+        plaintext(ciphertext.size());
+
+    std::uint8_t mask = 0U;
+
+    for (
+        std::size_t i = 0;
+        i < ciphertext.size();
+        ++i
+    ) {
+        /*
+         * Encryption:
+         *
+         * C[i] = T XOR Zbin XOR C[i-1]
+         *
+         * therefore:
+         *
+         * T = C[i] XOR Zbin XOR C[i-1]
+         */
+        const std::uint8_t transformed =
+            static_cast<std::uint8_t>(
+                ciphertext[i]
+                ^ controls[i].z_bin
+                ^ mask
+            );
+
+        const std::uint8_t recovered =
+            dna_inverse_transform_pixel(
+                transformed,
+                controls[i]
+            );
+
+        const std::size_t destination_index =
+            flipped
+                ? ciphertext.size() - 1U - i
+                : i;
+
+        plaintext[destination_index] =
+            recovered;
+
+        /*
+         * Feedback during inversion uses
+         * the previous encryption output,
+         * i.e. previous ciphertext byte.
+         */
+        mask = ciphertext[i];
+    }
+
+    return plaintext;
+}
+
+std::vector<std::uint8_t>
+FettehaDnaCipher2023::decrypt_with_initial_state(
+    const std::span<const std::uint8_t> ciphertext,
+    const LorenzState2023& initial_state,
+    const std::uint8_t p
+) {
+    std::vector<std::uint8_t>
+        current(
+            ciphertext.begin(),
+            ciphertext.end()
+        );
+
+    if (ciphertext.empty()) {
+        return current;
+    }
+
+    const std::uint8_t passes =
+        effective_pass_count(p);
+
+    const auto controls =
+        generate_control_sequence(
+            initial_state,
+            ciphertext.size(),
+            200
+        );
+
+    /*
+     * Encryption pass order:
+     *
+     * P, P-1, ..., 1
+     *
+     * Therefore decryption must apply
+     * inverse passes in reverse order:
+     *
+     * 1, 2, ..., P.
+     */
+    for (
+        std::uint8_t pass = 1U;
+        pass <= passes;
+        ++pass
+    ) {
+        const bool flipped =
+            (pass % 2U) != 0U;
+
+        current =
+            decrypt_single_pass(
+                current,
+                controls,
+                flipped
+            );
+    }
+
+    return current;
+}
+
+FettehaEncryptionResult2023
+FettehaDnaCipher2023::encrypt(
+    const std::span<const std::uint8_t> image,
+    const Key& key
+) {
+    const auto initial_state =
+        derive_initial_state(key);
+
+    const auto p =
+        iteration_count(image);
+
+    return {
+        encrypt_with_initial_state(
+            image,
+            initial_state
+        ),
+        p
+    };
+}
+
+std::vector<std::uint8_t>
+FettehaDnaCipher2023::decrypt(
+    const std::span<const std::uint8_t> ciphertext,
+    const Key& key,
+    const std::uint8_t p
+) {
+    const auto initial_state =
+        derive_initial_state(key);
+
+    return decrypt_with_initial_state(
+        ciphertext,
+        initial_state,
+        p
+    );
 }
 
 
