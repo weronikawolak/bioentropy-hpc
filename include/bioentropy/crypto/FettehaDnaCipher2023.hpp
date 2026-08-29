@@ -38,6 +38,10 @@ struct DnaControlValues2023 {
     std::array<std::uint8_t, 4> x_rules{};
     std::array<std::uint8_t, 4> y_rules{};
     std::uint8_t z_bin{};
+
+    bool operator==(
+        const DnaControlValues2023&
+    ) const = default;
 };
 
 class FettehaDnaCipher2023 {
@@ -143,6 +147,21 @@ public:
         std::span<const std::uint8_t> image,
         std::span<const DnaControlValues2023> controls,
         bool flipped
+    );
+
+    [[nodiscard]]
+    static std::vector<DnaControlValues2023>
+    generate_control_sequence(
+        const LorenzState2023& initial_state,
+        std::size_t count,
+        std::size_t discard = 200
+    );
+
+    [[nodiscard]]
+    static std::vector<std::uint8_t>
+    encrypt_with_initial_state(
+        std::span<const std::uint8_t> image,
+        const LorenzState2023& initial_state
     );
 };
 

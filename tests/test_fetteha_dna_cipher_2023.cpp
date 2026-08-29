@@ -650,6 +650,143 @@ int main() {
         "cross-rule DNA transform had no effect"
     );
 
+
+    /*
+     * Full-pass reproduction profile.
+     *
+     * P = 0 -> zero encryption passes.
+     */
+    const std::vector<std::uint8_t>
+        p_zero_image{
+            0x10
+        };
+
+    require(
+        FettehaDnaCipher2023::
+            iteration_count(
+                p_zero_image
+            )
+        == 0,
+        "P=0 fixture mismatch"
+    );
+
+    require(
+        FettehaDnaCipher2023::
+            encrypt_with_initial_state(
+                p_zero_image,
+                published_demo_initial
+            )
+        == p_zero_image,
+        "P=0 must leave input unchanged"
+    );
+
+    /*
+     * P = 1:
+     * exactly one complete, flipped pass.
+     */
+    const std::vector<std::uint8_t>
+        p_one_image{
+            0x01
+        };
+
+    const auto p_one_controls =
+        FettehaDnaCipher2023::
+            generate_control_sequence(
+                published_demo_initial,
+                p_one_image.size()
+            );
+
+    const auto expected_p_one =
+        FettehaDnaCipher2023::
+            encrypt_single_pass(
+                p_one_image,
+                p_one_controls,
+                true
+            );
+
+    require(
+        FettehaDnaCipher2023::
+            encrypt_with_initial_state(
+                p_one_image,
+                published_demo_initial
+            )
+        == expected_p_one,
+        "P=1 orchestration mismatch"
+    );
+
+    /*
+     * P = 2:
+     *
+     * first pass: P=2 -> normal
+     * second pass: P=1 -> flipped
+     */
+    const std::vector<std::uint8_t>
+        p_two_image{
+            0x01,
+            0x01
+        };
+
+    require(
+        FettehaDnaCipher2023::
+            iteration_count(
+                p_two_image
+            )
+        == 2,
+        "P=2 fixture mismatch"
+    );
+
+    const auto p_two_controls =
+        FettehaDnaCipher2023::
+            generate_control_sequence(
+                published_demo_initial,
+                p_two_image.size()
+            );
+
+    const auto pass_two =
+        FettehaDnaCipher2023::
+            encrypt_single_pass(
+                p_two_image,
+                p_two_controls,
+                false
+            );
+
+    const auto pass_one =
+        FettehaDnaCipher2023::
+            encrypt_single_pass(
+                pass_two,
+                p_two_controls,
+                true
+            );
+
+    require(
+        FettehaDnaCipher2023::
+            encrypt_with_initial_state(
+                p_two_image,
+                published_demo_initial
+            )
+        == pass_one,
+        "P=2 orchestration mismatch"
+    );
+
+    /*
+     * Chaotic-control generation must be
+     * perfectly deterministic.
+     */
+    require(
+        FettehaDnaCipher2023::
+            generate_control_sequence(
+                published_demo_initial,
+                32
+            )
+        ==
+        FettehaDnaCipher2023::
+            generate_control_sequence(
+                published_demo_initial,
+                32
+            ),
+        "control sequence is not deterministic"
+    );
+
     std::cout
         << "Fetteha DNA cipher 2023 "
         << "core and DNA tests passed\n";

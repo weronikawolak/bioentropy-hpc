@@ -547,4 +547,96 @@ FettehaDnaCipher2023::encrypt_single_pass(
 }
 
 
+std::vector<DnaControlValues2023>
+FettehaDnaCipher2023::generate_control_sequence(
+    const LorenzState2023& initial_state,
+    const std::size_t count,
+    const std::size_t discard
+) {
+    auto state =
+        advance_lorenz(
+            initial_state,
+            discard
+        );
+
+    std::vector<DnaControlValues2023>
+        controls;
+
+    controls.reserve(count);
+
+    for (
+        std::size_t i = 0;
+        i < count;
+        ++i
+    ) {
+        state =
+            lorenz_step(state);
+
+        controls.push_back(
+            derive_dna_controls(state)
+        );
+    }
+
+    return controls;
+}
+
+std::vector<std::uint8_t>
+FettehaDnaCipher2023::encrypt_with_initial_state(
+    const std::span<const std::uint8_t> image,
+    const LorenzState2023& initial_state
+) {
+    std::vector<std::uint8_t>
+        current(
+            image.begin(),
+            image.end()
+        );
+
+    const std::uint8_t initial_p =
+        iteration_count(image);
+
+    if (
+        initial_p == 0U
+        || image.empty()
+    ) {
+        return current;
+    }
+
+    /*
+     * Reproduction profile v1:
+     *
+     * P denotes complete image passes.
+     */
+    std::uint8_t p =
+        initial_p;
+
+    /*
+     * Algorithm 1 is interpreted as
+     * restarting the same Lorenz trajectory
+     * for every complete pass.
+     */
+    const auto controls =
+        generate_control_sequence(
+            initial_state,
+            image.size(),
+            200
+        );
+
+    while (p > 0U) {
+        const bool flipped =
+            (p % 2U) != 0U;
+
+        current =
+            encrypt_single_pass(
+                current,
+                controls,
+                flipped
+            );
+
+        --p;
+    }
+
+    return current;
+}
+
+
 }  // namespace bioentropy

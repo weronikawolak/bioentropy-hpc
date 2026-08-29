@@ -2899,3 +2899,38 @@ The remaining distinction is between:
    Lorenz initial-condition words.
 
 The second item will remain isolated rather than being silently guessed.
+
+---
+
+# Fetteha 2023 — full-pass orchestration profile
+
+A complete P-controlled image-pass orchestration has been implemented
+on top of the previously validated pixel pipeline.
+
+The reproduction profile interprets:
+
+P = sum(original_plaintext_pixels) mod 16
+
+as the number of complete image-encryption passes.
+
+For each pass:
+
+- the Lorenz trajectory starts from the supplied initial state,
+- the first 200 chaotic states are discarded,
+- one DNA control tuple is generated per pixel,
+- even P uses normal pixel order,
+- odd P uses reversed pixel order,
+- feedback mask starts at zero,
+- the pass output becomes the next pass input,
+- P is decremented after the complete image pass.
+
+The implementation additionally preserves the literal P=0 behavior:
+when the plaintext pixel sum is divisible by 16, zero passes are
+performed.
+
+This control-flow interpretation is explicitly documented as a
+reproduction profile because the prose and pseudocode of the source
+publication are not completely consistent.
+
+The remaining unresolved publication detail is the numerical mapping
+of the XOR-derived 32-bit X0/Y0/Z0 words into Lorenz coordinates.

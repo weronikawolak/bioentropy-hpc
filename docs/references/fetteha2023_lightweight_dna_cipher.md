@@ -289,3 +289,23 @@ implement the complete outer encryption loop.
 
 This separation avoids silently choosing between inconsistent
 descriptions of P control flow in the publication.
+
+---
+
+## Implementation status — full image passes
+
+Implemented and tested:
+
+- generation of a complete chaotic control sequence,
+- 200-state discard before usable controls,
+- deterministic repeated control generation,
+- P-controlled complete image passes,
+- normal traversal for even P,
+- reversed traversal for odd P,
+- pass-local feedback initialization,
+- P=0 zero-pass behavior.
+
+The P-loop structure is an explicitly documented reproduction
+interpretation.
+
+Key-to-Lorenz numerical conversion remains deliberately unresolved.
