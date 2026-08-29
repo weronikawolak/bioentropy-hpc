@@ -177,6 +177,69 @@ derive_raw_initial_conditions(
     };
 }
 
+double
+FettehaDnaCipher2023::
+map_raw_condition_s32_2neg26(
+    const std::uint32_t raw
+) {
+    /*
+     * BioEntropy HPC reproduction profile v1.
+     *
+     * Interpret raw XOR output as signed
+     * 32-bit two's-complement and apply
+     * scale 2^-26.
+     *
+     * This is NOT specified by the source
+     * publication.
+     */
+    const std::int64_t signed_value =
+        raw <= 0x7FFFFFFFU
+            ? static_cast<std::int64_t>(raw)
+            : static_cast<std::int64_t>(raw)
+                - (1LL << 32);
+
+    return std::ldexp(
+        static_cast<double>(signed_value),
+        -26
+    );
+}
+
+LorenzState2023
+FettehaDnaCipher2023::
+map_raw_initial_conditions(
+    const FettehaRawInitialConditions2023& raw
+) {
+    return {
+        map_raw_condition_s32_2neg26(
+            raw.x0
+        ),
+        map_raw_condition_s32_2neg26(
+            raw.y0
+        ),
+        map_raw_condition_s32_2neg26(
+            raw.z0
+        )
+    };
+}
+
+LorenzState2023
+FettehaDnaCipher2023::derive_initial_state(
+    const Key& key
+) {
+    const auto words =
+        split_key(key);
+
+    const auto raw =
+        derive_raw_initial_conditions(
+            words
+        );
+
+    return map_raw_initial_conditions(
+        raw
+    );
+}
+
+
 LorenzState2023
 FettehaDnaCipher2023::lorenz_step(
     const LorenzState2023& state,

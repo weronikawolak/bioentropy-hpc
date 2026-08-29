@@ -309,3 +309,29 @@ The P-loop structure is an explicitly documented reproduction
 interpretation.
 
 Key-to-Lorenz numerical conversion remains deliberately unresolved.
+
+---
+
+## Key-to-Lorenz reproducibility limitation
+
+The publication specifies XOR combinations of eight 32-bit key words
+for deriving X0, Y0 and Z0, but does not specify the numerical
+fixed-point interpretation of the resulting words.
+
+A dedicated sensitivity analysis was therefore performed across
+multiple explicit 32-bit scaling profiles.
+
+The primary software reproduction profile interprets each raw XOR word
+as a signed 32-bit integer scaled by:
+
+2^-26
+
+giving the numerical interval:
+
+[-32, 32).
+
+This choice is an explicitly documented reproduction decision and is
+not presented as an undocumented property of the original FPGA design.
+
+Alternative mappings are retained in the key-mapping sensitivity
+analysis.

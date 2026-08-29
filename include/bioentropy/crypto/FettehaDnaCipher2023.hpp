@@ -74,6 +74,23 @@ public:
     );
 
     [[nodiscard]]
+    static double map_raw_condition_s32_2neg26(
+        std::uint32_t raw
+    );
+
+    [[nodiscard]]
+    static LorenzState2023
+    map_raw_initial_conditions(
+        const FettehaRawInitialConditions2023& raw
+    );
+
+    [[nodiscard]]
+    static LorenzState2023
+    derive_initial_state(
+        const Key& key
+    );
+
+    [[nodiscard]]
     static LorenzState2023 lorenz_step(
         const LorenzState2023& state,
         const LorenzParameters2023& parameters = {}

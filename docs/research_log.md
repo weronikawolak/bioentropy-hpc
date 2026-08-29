@@ -2934,3 +2934,45 @@ publication are not completely consistent.
 
 The remaining unresolved publication detail is the numerical mapping
 of the XOR-derived 32-bit X0/Y0/Z0 words into Lorenz coordinates.
+
+---
+
+# Fetteha 2023 — key-to-Lorenz mapping sensitivity
+
+The publication defines the raw 32-bit XOR expressions used to derive
+X0, Y0 and Z0, but does not specify their numerical representation as
+Lorenz coordinates.
+
+A deterministic sensitivity experiment was performed over 1000
+synthetic 256-bit keys.
+
+Each candidate mapping was evaluated for:
+
+- 200 discarded Lorenz states,
+- 1024 subsequent states,
+- finite numerical behavior,
+- maximum trajectory magnitude.
+
+Observed stable fractions:
+
+u32_unit   : 1000 / 1000
+u32_q28    : 1000 / 1000
+s32_q28    : 1000 / 1000
+s32_q27    : 1000 / 1000
+s32_q26    : 1000 / 1000
+s32_q24    :  211 / 1000
+s32_q16    :    0 / 1000
+
+The primary reproduction profile was selected as:
+
+signed 32-bit two's-complement value * 2^-26
+
+giving an initial numerical interval of approximately:
+
+[-32, 32).
+
+This choice is explicitly a BioEntropy HPC reproduction profile and is
+not claimed to reproduce an undocumented original FPGA Q-format.
+
+The sensitivity analysis is retained so alternative mappings can be
+re-evaluated without changing the publication-derived cipher logic.

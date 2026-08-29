@@ -787,6 +787,102 @@ int main() {
         "control sequence is not deterministic"
     );
 
+
+    /*
+     * BioEntropy HPC reproduction profile:
+     *
+     * signed int32 * 2^-26.
+     */
+    require(
+        near(
+            FettehaDnaCipher2023::
+                map_raw_condition_s32_2neg26(
+                    0x00000000U
+                ),
+            0.0
+        ),
+        "key mapping zero mismatch"
+    );
+
+    /*
+     * +10 represented with scale 2^-26.
+     */
+    require(
+        near(
+            FettehaDnaCipher2023::
+                map_raw_condition_s32_2neg26(
+                    0x28000000U
+                ),
+            10.0
+        ),
+        "key mapping +10 mismatch"
+    );
+
+    require(
+        near(
+            FettehaDnaCipher2023::
+                map_raw_condition_s32_2neg26(
+                    0x40000000U
+                ),
+            16.0
+        ),
+        "key mapping +16 mismatch"
+    );
+
+    require(
+        near(
+            FettehaDnaCipher2023::
+                map_raw_condition_s32_2neg26(
+                    0x80000000U
+                ),
+            -32.0
+        ),
+        "key mapping minimum mismatch"
+    );
+
+    require(
+        near(
+            FettehaDnaCipher2023::
+                map_raw_condition_s32_2neg26(
+                    0xFFFFFFFFU
+                ),
+            -1.0 / 67108864.0
+        ),
+        "key mapping negative LSB mismatch"
+    );
+
+    /*
+     * Full key-to-Lorenz derivation must
+     * equal the explicit split/XOR/map path.
+     */
+    const auto mapped_raw =
+        FettehaDnaCipher2023::
+            map_raw_initial_conditions(
+                initial
+            );
+
+    const auto mapped_direct =
+        FettehaDnaCipher2023::
+            derive_initial_state(key);
+
+    require(
+        near(
+            mapped_raw.x,
+            mapped_direct.x
+        )
+        &&
+        near(
+            mapped_raw.y,
+            mapped_direct.y
+        )
+        &&
+        near(
+            mapped_raw.z,
+            mapped_direct.z
+        ),
+        "full key-to-Lorenz mapping mismatch"
+    );
+
     std::cout
         << "Fetteha DNA cipher 2023 "
         << "core and DNA tests passed\n";
