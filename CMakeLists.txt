@@ -340,3 +340,15 @@ target_link_libraries(
     PRIVATE
         bioentropy_core
 )
+
+
+add_executable(
+    fetteha-p-performance
+    src/benchmark/benchmark_fetteha_p_performance.cpp
+)
+
+target_link_libraries(
+    fetteha-p-performance
+    PRIVATE
+        bioentropy_core
+)

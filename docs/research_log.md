@@ -3292,3 +3292,91 @@ This is treated as a strong diagnostic finding for the reproduced
 Fetteha 2023 construction.
 
 It is not presented as a proof of complete cryptographic insecurity.
+
+---
+
+# Fetteha 2023 — performance dependence on P
+
+The reproduced Fetteha cipher was benchmarked on deterministic
+256x256 grayscale images:
+
+65536 bytes per image.
+
+All raw P classes from 0 through 15 were evaluated.
+
+The reproduction profile maps:
+
+raw P = 0 -> 16 effective passes.
+
+For each P class:
+
+- 5 warm-up encrypt/decrypt cycles were executed,
+- 31 measured repetitions were collected,
+- median encryption and decryption times were reported,
+- every measured execution was verified by a successful round trip.
+
+## Main observation
+
+Runtime is strongly dependent on the effective P value.
+
+Encryption:
+
+P=1:
+~12.87 ms
+~4.86 MiB/s
+
+P=16:
+~62.57 ms
+~1.00 MiB/s.
+
+Thus the P=16 encryption case is approximately 4.86 times slower than
+P=1.
+
+Decryption showed a comparable pattern.
+
+## Linear cost model
+
+A linear regression against effective pass count gave approximately:
+
+encryption:
+time_us = 9889.6 + 3172.2 * effective_passes
+R^2 = 0.9952
+
+decryption:
+time_us = 9807.0 + 3155.2 * effective_passes
+R^2 = 0.9938.
+
+This indicates an approximately linear incremental cost per additional
+image pass, combined with a substantial fixed per-image cost.
+
+The fixed component includes operations such as key-derived chaotic
+state preparation and control-sequence generation.
+
+Therefore total runtime is not proportional to P alone.
+
+The previously reported per-pass values are interpreted only as
+amortized total-time-per-pass quantities and not as isolated
+measurements of an individual pass.
+
+## Security/performance implication
+
+Because P depends on the plaintext:
+
+P = sum(image) mod 16,
+
+small plaintext modifications may alter both:
+
+- the cipher execution path,
+- computational cost.
+
+Under the documented reproduction profile, the most extreme observed
+transition is:
+
+raw P 0 -> 1
+
+corresponding to:
+
+16 effective passes -> 1 effective pass.
+
+This connects the previously observed P-dependent differential behavior
+with a substantial plaintext-dependent performance variation.

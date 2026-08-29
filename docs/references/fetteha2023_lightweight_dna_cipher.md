@@ -437,3 +437,37 @@ to P and the resulting cipher execution path.
 
 The finding is treated as a diagnostic limitation of the reproduced
 scheme rather than as a standalone proof of general insecurity.
+
+---
+
+## Software performance dependence on P
+
+The reproduced cipher exhibits a strong runtime dependence on the
+effective P value.
+
+For 256x256 grayscale images:
+
+P=1 encryption:
+~12.87 ms
+~4.86 MiB/s
+
+P=16 encryption:
+~62.57 ms
+~1.00 MiB/s.
+
+Linear regression produced approximately:
+
+encryption:
+time_us = 9889.6 + 3172.2 * passes
+R^2 = 0.9952
+
+decryption:
+time_us = 9807.0 + 3155.2 * passes
+R^2 = 0.9938.
+
+These are BioEntropy HPC software-reproduction measurements and must
+not be confused with the FPGA throughput reported in the source paper.
+
+The result demonstrates that the plaintext-dependent P parameter
+affects not only the observed differential behavior but also the
+computational cost of encryption.
