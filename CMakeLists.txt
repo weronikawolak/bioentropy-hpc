@@ -29,6 +29,7 @@ add_library(
     src/core/SeedManager.cpp
     src/sources/RandomnessSourceFactory.cpp
     src/sources/chaos/LogisticMapSource.cpp
+    src/sources/chaos/Chen4DDcsSource.cpp
     src/sources/cellular/CellularAutomatonSource.cpp
     src/sources/reference/ChaCha20ReferenceSource.cpp
     src/sources/dna/DNASequenceSource.cpp
@@ -395,4 +396,20 @@ target_link_libraries(
         bioentropy_core
         PkgConfig::MPFR
         yaml-cpp
+)
+
+add_executable(
+    chen-4d-dcs-source-test
+    tests/test_chen_4d_dcs_source.cpp
+)
+
+target_link_libraries(
+    chen-4d-dcs-source-test
+    PRIVATE
+        bioentropy_core
+)
+
+add_test(
+    NAME chen-4d-dcs-source-test
+    COMMAND chen-4d-dcs-source-test
 )

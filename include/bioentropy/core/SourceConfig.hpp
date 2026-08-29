@@ -52,6 +52,27 @@ struct LogisticMapConfig {
     };
 };
 
+enum class Chen4DExtractionMethod {
+    ThresholdPerCoordinate
+};
+
+struct Chen4DDcsConfig {
+    double r{5.0};
+
+    double x0{0.1};
+    double y0{0.2};
+    double z0{0.3};
+    double w0{0.4};
+
+    std::uint64_t burn_in{1000};
+
+    Chen4DExtractionMethod extraction{
+        Chen4DExtractionMethod::ThresholdPerCoordinate
+    };
+
+    double threshold{0.5};
+};
+
 enum class CellularAutomatonRule : std::uint16_t {
     Rule30 = 30,
     Rule90 = 90
@@ -91,6 +112,7 @@ struct DNASequenceConfig {
 
 using SourceParameters = std::variant<
     LogisticMapConfig,
+    Chen4DDcsConfig,
     CellularAutomatonConfig,
     ChaCha20ReferenceConfig,
     DNASequenceConfig

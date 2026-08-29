@@ -191,6 +191,107 @@ LogisticMapConfig parse_logistic_config(
     return config;
 }
 
+Chen4DExtractionMethod
+parse_chen_4d_extraction_method(
+    const std::string& value
+) {
+    if (
+        value ==
+        "threshold_per_coordinate"
+    ) {
+        return
+            Chen4DExtractionMethod::
+                ThresholdPerCoordinate;
+    }
+
+    throw std::invalid_argument(
+        "unsupported Chen 4D-DCS extraction "
+        "method: "
+        + value
+    );
+}
+
+Chen4DDcsConfig
+parse_chen_4d_dcs_config(
+    const YAML::Node& parameters
+) {
+    if (!parameters) {
+        throw std::invalid_argument(
+            "missing source.parameters section "
+            "for Chen 4D-DCS source"
+        );
+    }
+
+    if (!parameters["r"]) {
+        throw std::invalid_argument(
+            "missing Chen 4D-DCS parameter: r"
+        );
+    }
+
+    const YAML::Node initial_state =
+        parameters["initial_state"];
+
+    if (!initial_state) {
+        throw std::invalid_argument(
+            "missing Chen 4D-DCS initial_state"
+        );
+    }
+
+    for (
+        const char* key :
+        {"x0", "y0", "z0", "w0"}
+    ) {
+        if (!initial_state[key]) {
+            throw std::invalid_argument(
+                std::string(
+                    "missing Chen 4D-DCS "
+                    "initial-state parameter: "
+                )
+                + key
+            );
+        }
+    }
+
+    Chen4DDcsConfig config{};
+
+    config.r =
+        parameters["r"].as<double>();
+
+    config.x0 =
+        initial_state["x0"].as<double>();
+
+    config.y0 =
+        initial_state["y0"].as<double>();
+
+    config.z0 =
+        initial_state["z0"].as<double>();
+
+    config.w0 =
+        initial_state["w0"].as<double>();
+
+    if (parameters["burn_in"]) {
+        config.burn_in =
+            parameters["burn_in"]
+                .as<std::uint64_t>();
+    }
+
+    if (parameters["threshold"]) {
+        config.threshold =
+            parameters["threshold"]
+                .as<double>();
+    }
+
+    if (parameters["extraction"]) {
+        config.extraction =
+            parse_chen_4d_extraction_method(
+                parameters["extraction"]
+                    .as<std::string>()
+            );
+    }
+
+    return config;
+}
+
 CellularAutomatonRule parse_ca_rule(
     std::uint16_t rule
 ) {
@@ -442,7 +543,18 @@ ExperimentConfig ExperimentConfig::from_yaml(
                     .as<std::uint64_t>();
         }
 
-        if (config.source.type == "logistic") {
+        if (
+            config.source.type ==
+            "chen_4d_dcs"
+        ) {
+            config.source.parameters =
+                parse_chen_4d_dcs_config(
+                    source["parameters"]
+                );
+        } else if (
+            config.source.type ==
+            "logistic"
+        ) {
             config.source.parameters =
                 parse_logistic_config(
                     source["parameters"]
@@ -528,7 +640,69 @@ void ExperimentConfig::validate() const {
         );
     }
 
-    if (source.type == "logistic") {
+    if (source.type == "chen_4d_dcs") {
+        const auto* chen =
+            std::get_if<Chen4DDcsConfig>(
+                &source.parameters
+            );
+
+        if (chen == nullptr) {
+            throw std::invalid_argument(
+                "Chen 4D-DCS source has "
+                "invalid parameters"
+            );
+        }
+
+        if (
+            !std::isfinite(chen->r)
+            || chen->r < 0.0
+            || chen->r > 10.0
+        ) {
+            throw std::invalid_argument(
+                "Chen 4D-DCS r must satisfy "
+                "0 <= r <= 10"
+            );
+        }
+
+        const auto valid_state =
+            [](
+                const double value
+            ) {
+                return
+                    std::isfinite(value)
+                    && value >= 0.0
+                    && value < 1.0;
+            };
+
+        if (
+            !valid_state(chen->x0)
+            || !valid_state(chen->y0)
+            || !valid_state(chen->z0)
+            || !valid_state(chen->w0)
+        ) {
+            throw std::invalid_argument(
+                "Chen 4D-DCS initial states "
+                "must satisfy 0 <= state < 1"
+            );
+        }
+
+        if (
+            !std::isfinite(
+                chen->threshold
+            )
+            || chen->threshold <= 0.0
+            || chen->threshold >= 1.0
+        ) {
+            throw std::invalid_argument(
+                "Chen 4D-DCS threshold must "
+                "satisfy 0 < threshold < 1"
+            );
+        }
+
+        return;
+    }
+
+if (source.type == "logistic") {
         const auto* logistic =
             std::get_if<LogisticMapConfig>(
                 &source.parameters

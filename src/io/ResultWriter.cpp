@@ -94,6 +94,77 @@ nlohmann::json conditioning_to_json(
 nlohmann::json source_parameters_to_json(
     const SourceConfig& source
 ) {
+    if (source.type == "chen_4d_dcs") {
+        const auto* config =
+            std::get_if<Chen4DDcsConfig>(
+                &source.parameters
+            );
+
+        if (config == nullptr) {
+            throw std::invalid_argument(
+                "invalid Chen 4D-DCS "
+                "source configuration"
+            );
+        }
+
+        return {
+            {
+                "r",
+                config->r
+            },
+            {
+                "arithmetic",
+                "float64"
+            },
+            {
+                "burn_in",
+                config->burn_in
+            },
+            {
+                "extraction",
+                "threshold_per_coordinate"
+            },
+            {
+                "threshold",
+                config->threshold
+            },
+            {
+                "output_order",
+                {
+                    "x",
+                    "y",
+                    "z",
+                    "w"
+                }
+            },
+            {
+                "bits_per_iteration",
+                4
+            },
+            {
+                "initial_state",
+                {
+                    {
+                        "x0",
+                        config->x0
+                    },
+                    {
+                        "y0",
+                        config->y0
+                    },
+                    {
+                        "z0",
+                        config->z0
+                    },
+                    {
+                        "w0",
+                        config->w0
+                    }
+                }
+            }
+        };
+    }
+
     if (source.type == "logistic") {
         const auto* config =
             std::get_if<LogisticMapConfig>(
