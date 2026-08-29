@@ -139,3 +139,39 @@ The appropriate interpretation is therefore:
 The result does not establish mathematical or digital
 aperiodicity.
 
+## Local Dieharder screening
+
+The project-defined Chen 4D-DCS binary64 reference profile was also
+evaluated with the validated local Dieharder screening subset.
+
+The evaluated RAW stream contained 134,217,728 bits.
+
+Internal stream statistics were:
+
+- bias: 0.0003777891
+- Shannon entropy: 0.9999995882 bits/bit
+- SHA-256:
+  `db2b705ae2f92dae17065c9f10b25f9dbbecc9cfc713f7543e9ba8345e01ecff`
+
+Across 41 valid Dieharder output rows:
+
+- PASS: 37
+- WEAK: 4
+- FAIL: 0
+
+The WEAK rows occurred in:
+
+- STS Monobit;
+- STS Serial ntuple 1;
+- STS Serial ntuple 2;
+- STS Serial ntuple 3.
+
+This single-stream screening result is not interpreted as a source-level
+failure.
+
+Instead, it defines a concrete follow-up question for repeated
+experiments: whether borderline low-order frequency/serial behavior
+persists across independent replicates.
+
+The result also must not be interpreted as evidence of cryptographic
+security or physical entropy.

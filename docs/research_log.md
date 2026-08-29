@@ -4264,3 +4264,203 @@ deliberately defective negative control.
 This milestone validates the Dieharder integration and analysis
 pipeline. The next stage will use multiple independent
 replicates before source-level conclusions are drawn.
+
+### Dieharder 16 MiB four-source screening results
+
+Following validation of the external-battery input path, a four-source
+local Dieharder screening experiment was performed.
+
+Each source produced:
+
+- 16 MiB = 16,777,216 bytes;
+- 134,217,728 output bits;
+- RAW output;
+- one experiment replicate;
+- one p-sample per Dieharder invocation.
+
+The tested representatives were:
+
+1. Chen 4D-DCS, binary64 reference profile;
+2. Logistic Map, binary64;
+3. Rule90 cellular automaton negative control;
+4. ChaCha20 deterministic cryptographic reference.
+
+The validated no-rewind screening subset consisted of tests:
+
+`0, 2, 4, 8, 9, 15, 16, 100, 101, 102`.
+
+Because STS Serial produces multiple rows for different tuple orders,
+each source generated 41 result rows.
+
+#### Input-stream statistics
+
+Chen 4D-DCS:
+
+- bits: 134,217,728
+- P(0): 0.5003777891
+- P(1): 0.4996222109
+- bias: 0.0003777891
+- Shannon entropy: 0.9999995882 bits/bit
+- SHA-256:
+  `db2b705ae2f92dae17065c9f10b25f9dbbecc9cfc713f7543e9ba8345e01ecff`
+
+Logistic Map binary64:
+
+- bits: 134,217,728
+- P(0): 0.4999787211
+- P(1): 0.5000212789
+- bias: 0.0000212789
+- Shannon entropy: 0.9999999987 bits/bit
+- SHA-256:
+  `2f4b859a051a8c1ae32e33ffd9bd805d376a285c62240ade9e5e8c2d22072b97`
+
+Rule90:
+
+- bits: 134,217,728
+- P(0): 0.9998825490
+- P(1): 0.0001174510
+- bias: 0.4998825490
+- Shannon entropy: 0.0017028349 bits/bit
+- SHA-256:
+  `6b8b27580aac46651504cc93c9e52075e4d1917b166ee90b605af97380d87537`
+
+ChaCha20 reference:
+
+- bits: 134,217,728
+- P(0): 0.5000008419
+- P(1): 0.4999991581
+- bias: 0.0000008419
+- Shannon entropy: 1.0000000000 bits/bit
+- SHA-256:
+  `b305c84e9a542cbc3b6d0f2291215f69e89b5427998594e917715513f9d2515e`
+
+#### Screening summary
+
+The parsed screening produced:
+
+| Source | PASS | WEAK | FAIL | INVALID |
+|---|---:|---:|---:|---:|
+| ChaCha20 | 40 | 1 | 0 | 0 |
+| Chen 4D-DCS | 37 | 4 | 0 | 0 |
+| Logistic binary64 | 41 | 0 | 0 | 0 |
+| Rule90 | 0 | 0 | 40 | 1 |
+
+The Rule90 INVALID row was STS Runs, for which Dieharder produced a
+non-finite p-value (`nan`). The parser correctly prevented the textual
+Dieharder `PASSED` label from being interpreted as a valid result.
+
+#### Chen 4D-DCS observations
+
+Chen produced no valid `FAILED` rows.
+
+Four rows were classified as `WEAK`:
+
+- STS Monobit:
+  p = 0.99989938
+- STS Serial, ntuple 1:
+  p = 0.99989938
+- STS Serial, ntuple 2:
+  p = 0.00075384
+- STS Serial, ntuple 3:
+  p = 0.00426047
+
+The Monobit and Serial ntuple-1 values are not treated as independent
+pieces of evidence because they represent closely related low-order
+statistics.
+
+The clustering of the Chen borderline values at low-order frequency and
+serial statistics is nevertheless retained as a specific follow-up
+hypothesis for the multi-replicate campaign.
+
+At this stage the correct conclusion is:
+
+Chen showed no test failures in the validated local screening profile,
+but produced several borderline low-order statistical results that
+require replication.
+
+This is stronger and more precise than either claiming that the source
+"passes randomness testing" or treating an isolated WEAK value as a
+failure.
+
+#### ChaCha20 reference observation
+
+ChaCha20 produced:
+
+- 40 PASS;
+- 1 WEAK;
+- 0 FAIL.
+
+The single WEAK row was:
+
+- STS Serial, ntuple 9:
+  p = 0.99555653.
+
+The presence of a borderline result even for the cryptographic reference
+illustrates why isolated WEAK assessments are expected to occur
+occasionally when many statistical hypotheses are evaluated.
+
+This motivates replicate-level and family-level interpretation rather
+than binary source classification from one p-value.
+
+#### Logistic binary64 observation
+
+The Logistic Map binary64 representative produced:
+
+- 41 PASS;
+- 0 WEAK;
+- 0 FAIL.
+
+For this individual 16 MiB stream, no defect was detected by the
+validated local Dieharder subset.
+
+This does not override the broader finite-precision study.
+
+In particular, the project has already demonstrated that statistical
+appearance and digital state-cycle behavior are separate properties:
+other Logistic numerical representations exhibit exact finite-state
+cycles and serial defects despite high Shannon entropy.
+
+#### Rule90 negative control
+
+Rule90 produced:
+
+- 40 valid FAIL results;
+- 1 INVALID result;
+- 0 PASS;
+- 0 WEAK.
+
+The negative control therefore behaves as intended.
+
+Its very strong imbalance also became more pronounced in the longer
+16 MiB stream, with approximately 99.988% zero bits and Shannon entropy
+of only approximately 0.0017 bits/bit.
+
+The rejection of Rule90 across the external screening battery provides
+an important validation that the pipeline is capable of detecting a
+deliberately poor source.
+
+#### Scientific interpretation
+
+These results validate the local Dieharder integration but do not yet
+constitute the final statistical comparison.
+
+The present experiment uses:
+
+- one source stream per representative;
+- one Dieharder p-sample;
+- a restricted no-rewind local test subset.
+
+The next statistical stage will use multiple independent experiment
+replicates.
+
+The main questions for that campaign include:
+
+1. whether the Chen low-order WEAK pattern persists across independent
+   source initializations / experiment seeds;
+2. whether occasional ChaCha20 WEAK results occur at the expected
+   frequency for multiple testing;
+3. how Logistic precision variants differ when evaluated by the same
+   external battery;
+4. whether conditioning systematically changes the frequency of
+   detectable statistical defects;
+5. whether the negative Rule90 control remains consistently rejected.
