@@ -1,3 +1,12 @@
+> **Project status:** Related Work only.
+>
+> This publication was initially considered as the DNA-based comparator,
+> but the implementation target was changed before the full cipher was
+> developed. The primary comparator is now Fetteha, Sayed & Said (2023),
+> selected because it is newer and explicitly targets lightweight image
+> encryption and hardware efficiency.
+>
+
 # DNA subsequence image cipher — reproduction target
 
 ## Reference

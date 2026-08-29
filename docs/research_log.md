@@ -2761,3 +2761,48 @@ The next stage is:
 
 Any ambiguity in the publication's extraction procedure will be
 documented before implementing that stage.
+
+---
+
+# DNA-based cipher comparator selection revised
+
+The initial plan to reproduce Zhang, Xue & Wei (2012) was reconsidered
+before the complete cipher implementation was committed.
+
+The primary DNA-based lightweight cipher comparator is now:
+
+Marwan A. Fetteha,
+Wafaa S. Sayed,
+Lobna A. Said,
+
+"A Lightweight Image Encryption Scheme Using DNA Coding and Chaos",
+
+Electronics, 2023, 12(24), 4895.
+
+DOI: 10.3390/electronics12244895
+
+The Zhang et al. 2012 publication remains relevant as earlier Related
+Work but is no longer the implementation target.
+
+The change was made because the 2023 construction is substantially
+better aligned with the BioEntropy HPC research scope.
+
+In particular, the Fetteha et al. scheme explicitly targets lightweight
+image encryption and includes:
+
+- DNA coding,
+- deterministic chaos,
+- a 256-bit key,
+- grayscale-image encryption,
+- image-dependent diffusion,
+- NPCR/UACI evaluation,
+- entropy and correlation evaluation,
+- NIST SP 800-22 evaluation,
+- hardware-oriented implementation,
+- FPGA resource and throughput measurements.
+
+The paper therefore provides a more appropriate contemporary comparator
+for Ascon-AEAD128 than the originally selected 2012 construction.
+
+No complete Zhang et al. cipher implementation was committed before
+this decision was made.
