@@ -328,3 +328,15 @@ target_link_libraries(
     PRIVATE
         bioentropy_core
 )
+
+
+add_executable(
+    fetteha-p-matched-control
+    src/benchmark/benchmark_fetteha_p_matched_control.cpp
+)
+
+target_link_libraries(
+    fetteha-p-matched-control
+    PRIVATE
+        bioentropy_core
+)

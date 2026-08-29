@@ -3205,3 +3205,90 @@ required before treating the P-confounding result as a final
 cryptanalytic conclusion.
 
 The next experiment will preserve P using two small +/-1 pixel changes.
+
+---
+
+# Fetteha 2023 — matched-magnitude P-control experiment
+
+A matched-magnitude differential control experiment was performed to
+remove the main limitation of the earlier P-preserving test.
+
+The campaign covered:
+
+- all raw P values from 0 through 15,
+- 50 deterministic trials per P class,
+- 1600 total differential comparisons.
+
+Two perturbation modes were compared.
+
+## Change-P condition
+
+One plaintext pixel was changed by:
+
++1
+
+This changes:
+
+raw P -> (raw P + 1) mod 16
+
+and therefore changes the cipher execution path.
+
+Across all trials:
+
+NPCR = 99.616190%
+UACI = 33.476177%.
+
+These results closely match conventional reference values:
+
+NPCR ~ 99.61%
+UACI ~ 33.46%.
+
+## Matched P-preserving condition
+
+The same primary plaintext pixel was changed by:
+
++1
+
+and a second plaintext pixel was changed by:
+
+-1.
+
+Therefore:
+
+total pixel-sum change = 0
+
+and raw P remains unchanged.
+
+Each individual plaintext modification has magnitude one.
+
+Across all trials:
+
+NPCR = 66.302910%
+UACI = 1.623252%.
+
+## Interpretation
+
+The large differential-security contrast remains after replacing the
+earlier +/-16 P-preserving perturbation with minimal +/-1 changes.
+
+The change-P condition produces near-reference NPCR/UACI values across
+all P classes.
+
+The P-preserving condition produces substantially lower differential
+metrics despite modifying two plaintext pixels rather than one.
+
+This strongly supports the interpretation that the image-dependent P
+parameter materially confounds conventional differential sensitivity
+measurements.
+
+The conventional one-pixel +1 test changes not only the plaintext but
+also the cipher execution path through P.
+
+Therefore its NPCR/UACI results cannot be interpreted purely as
+diffusion of a small plaintext difference through an otherwise
+identical encryption process.
+
+This is treated as a strong diagnostic finding for the reproduced
+Fetteha 2023 construction.
+
+It is not presented as a proof of complete cryptographic insecurity.

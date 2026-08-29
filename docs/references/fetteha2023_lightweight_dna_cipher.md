@@ -401,3 +401,39 @@ current P-preserving perturbation uses a +/-16 intensity change, while
 the P-changing condition uses +1.
 
 A matched-magnitude P-preserving control is therefore required.
+
+---
+
+## Matched-magnitude differential control
+
+A second P-confounding experiment used a lower-amplitude matched
+control.
+
+The change-P condition modified one plaintext pixel by +1.
+
+The P-preserving condition modified:
+
+- one pixel by +1,
+- one different pixel by -1.
+
+Thus the P-preserving perturbation kept the total plaintext pixel sum
+unchanged while using only unit-magnitude pixel modifications.
+
+Across all raw P classes and 50 trials per class:
+
+change-P:
+NPCR = 99.616190%
+UACI = 33.476177%
+
+P-preserving matched control:
+NPCR = 66.302910%
+UACI = 1.623252%.
+
+The effect was consistent across all P classes.
+
+This substantially strengthens the earlier observation that conventional
+NPCR/UACI measurements are influenced by plaintext-dependent changes
+to P and the resulting cipher execution path.
+
+The finding is treated as a diagnostic limitation of the reproduced
+scheme rather than as a standalone proof of general insecurity.
