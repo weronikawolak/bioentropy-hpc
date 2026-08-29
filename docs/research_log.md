@@ -2806,3 +2806,33 @@ for Ascon-AEAD128 than the originally selected 2012 construction.
 
 No complete Zhang et al. cipher implementation was committed before
 this decision was made.
+
+---
+
+# Fetteha et al. 2023 comparator — core implementation
+
+The first implementation milestone of the selected contemporary
+DNA-based lightweight image cipher has been completed.
+
+Implemented:
+
+- image pixel summation,
+- P = pixel_sum mod 16,
+- deterministic 256-bit key representation,
+- split of the key into eight 32-bit words,
+- XOR derivation of raw X0, Y0 and Z0 values,
+- Euler-discretized Lorenz system step.
+
+The Lorenz implementation uses the parameters reported by
+Fetteha et al. 2023:
+
+h = 2^-7
+sigma = 8
+rho = 16
+beta = 2
+
+The implementation has been integrated into the existing C++ test
+suite without regression of the previously implemented components.
+
+The next milestone is exact reproduction of the eight DNA encoding
+and decoding rules from Table 1 of the publication.

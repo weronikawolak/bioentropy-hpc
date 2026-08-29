@@ -35,6 +35,7 @@ add_library(
     src/conditioning/AsconXof128Conditioner.cpp
     src/conditioning/ascon_xof128_variable.c
     src/crypto/AsconAead128.cpp
+    src/crypto/FettehaDnaCipher2023.cpp
     third_party/ascon-c/crypto_aead/asconaead128/ref/aead.c
     third_party/ascon-c/crypto_aead/asconaead128/ref/printstate.c
 )
@@ -287,4 +288,21 @@ target_link_libraries(
     ascon-aead128-avalanche
     PRIVATE
         bioentropy_core
+)
+
+
+add_executable(
+    fetteha-dna-cipher-2023-test
+    tests/test_fetteha_dna_cipher_2023.cpp
+)
+
+target_link_libraries(
+    fetteha-dna-cipher-2023-test
+    PRIVATE
+        bioentropy_core
+)
+
+add_test(
+    NAME fetteha-dna-cipher-2023-test
+    COMMAND fetteha-dna-cipher-2023-test
 )

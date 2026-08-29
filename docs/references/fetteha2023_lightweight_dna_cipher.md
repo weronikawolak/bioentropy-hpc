@@ -204,3 +204,18 @@ introduced.
 
 The reproduced DNA-based cipher is a comparison target, not an original
 contribution of BioEntropy HPC.
+
+---
+
+## Implementation status — core milestone
+
+Implemented and tested:
+
+- P_sum calculation,
+- P = P_sum mod 16,
+- 256-bit key split into 8 x 32-bit words,
+- XOR-based raw initial-condition derivation,
+- one Euler-discretized Lorenz step.
+
+The DNA coding stage is intentionally implemented separately in the
+next milestone so that Table 1 can be reproduced and tested exactly.
