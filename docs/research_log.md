@@ -4216,3 +4216,51 @@ The result contrasts with the lower-precision Logistic Map
 profiles, where exact finite-state cycles were observed within
 the same class of finite-precision analysis.
 
+
+
+### Dieharder local integration validation
+
+Dieharder 3.31.1 was integrated as an external statistical
+randomness battery using raw binary file input (`-g 201`).
+
+A new `--dump-bitstream` runner option exports the exact byte
+stream evaluated internally by BioEntropy-HPC. Exported stream
+SHA-256 fingerprints were verified against the hashes stored
+in the corresponding result JSON files.
+
+A 16 MiB capacity probe was used to identify tests that can be
+executed without reusing the finite input file.
+
+The validated local screening subset consists of Dieharder
+tests:
+
+0, 2, 4, 8, 9, 15, 16, 100, 101, and 102.
+
+Parser-level safeguards classify results as INVALID when:
+
+- Dieharder reports that the input file was rewound;
+- the returned p-value is non-finite.
+
+The first four-source screening produced:
+
+- ChaCha20 reference: 40 PASS, 1 WEAK, 0 FAIL;
+- Chen 4D-DCS: 37 PASS, 4 WEAK, 0 FAIL;
+- Logistic Map binary64: 41 PASS, 0 WEAK, 0 FAIL;
+- Rule90 negative control: 40 FAIL and 1 INVALID.
+
+The Chen WEAK observations occurred in STS Monobit and
+low-order STS Serial results. Because this experiment used one
+stream and one p-sample, these observations are treated as
+follow-up signals rather than evidence of source failure.
+
+The presence of a WEAK result for the ChaCha20 reference also
+demonstrates why isolated borderline p-values must not be
+interpreted as source-level failures.
+
+Rule90 was strongly rejected across the valid screening rows,
+confirming that the external battery can distinguish the
+deliberately defective negative control.
+
+This milestone validates the Dieharder integration and analysis
+pipeline. The next stage will use multiple independent
+replicates before source-level conclusions are drawn.
