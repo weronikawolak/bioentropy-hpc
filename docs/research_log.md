@@ -4185,3 +4185,34 @@ It does not yet establish:
 
 Those questions remain for the screening and deep-testing
 stages.
+
+
+### Chen 4D-DCS finite-precision periodicity
+
+An exact-state periodicity probe was performed for the
+binary64 Chen 4D-DCS reference profile.
+
+Configuration:
+
+- r = 5.0
+- initial state = (0.1, 0.2, 0.3, 0.4)
+- arithmetic = IEEE-754 binary64
+- exact equality across all four state coordinates
+- recurrence-search bound = 10,000,000 transitions
+
+Two starting points were evaluated:
+
+1. the original initial state;
+2. the state reached after the standard 1000-transition burn-in.
+
+No exact state recurrence was detected within 10,000,000
+transitions in either case.
+
+This result must not be interpreted as proof of aperiodicity.
+It establishes only that no exact binary64 state recurrence was
+observed within the investigated transition bound.
+
+The result contrasts with the lower-precision Logistic Map
+profiles, where exact finite-state cycles were observed within
+the same class of finite-precision analysis.
+

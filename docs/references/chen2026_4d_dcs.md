@@ -113,3 +113,29 @@ authors.
 Passing randomness tests or exhibiting hyperchaotic dynamics
 must not be interpreted as proof of cryptographic entropy,
 unpredictability, or secrecy.
+
+
+## Finite-precision periodicity probe
+
+The binary64 reference configuration was subjected to an
+exact-state cycle search.
+
+The comparison uses exact equality of the complete
+four-dimensional floating-point state:
+
+(x, y, z, w)
+
+For r=5.0 and initial state
+(0.1, 0.2, 0.3, 0.4), no exact recurrence was detected within
+10,000,000 state transitions.
+
+The same result was obtained when the search started after the
+standard 1000-transition burn-in.
+
+The appropriate interpretation is therefore:
+
+"No exact recurrence was detected within 10^7 transitions."
+
+The result does not establish mathematical or digital
+aperiodicity.
+

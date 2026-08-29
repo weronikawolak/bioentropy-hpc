@@ -413,3 +413,15 @@ add_test(
     NAME chen-4d-dcs-source-test
     COMMAND chen-4d-dcs-source-test
 )
+
+
+add_executable(
+    chen-4d-dcs-periodicity-probe
+    src/benchmark/benchmark_chen_4d_dcs_periodicity.cpp
+)
+
+target_link_libraries(
+    chen-4d-dcs-periodicity-probe
+    PRIVATE
+        bioentropy_core
+)
