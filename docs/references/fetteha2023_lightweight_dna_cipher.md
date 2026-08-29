@@ -219,3 +219,73 @@ Implemented and tested:
 
 The DNA coding stage is intentionally implemented separately in the
 next milestone so that Table 1 can be reproduced and tested exactly.
+
+---
+
+## Implementation status — chaotic control extraction
+
+Implemented and tested from Algorithm 1:
+
+- deterministic advancement of the Lorenz system,
+- discard of the first 200 generated states,
+- first usable state at iteration 201,
+- Xbin1 through Xbin4 extraction,
+- Ybin1 through Ybin4 extraction,
+- Zbin extraction,
+- MATLAB-compatible fix() semantics,
+- MATLAB-compatible mod(..., 8) behavior for negative values.
+
+The published expressions reproduced are:
+
+Xbin1 = mod(fix(X * 2^13), 8) + 1
+Xbin2 = mod(fix(X * 2^16), 8) + 1
+Xbin3 = mod(fix(X * 2^19), 8) + 1
+Xbin4 = mod(fix(X * 2^22), 8) + 1
+
+with analogous expressions for Y, and:
+
+Zbin = mod(fix(Z * 2^22), 8) + 1.
+
+Two parts of the complete cipher remain intentionally unresolved:
+
+1. the exact numerical interpretation of the 32-bit XOR-derived
+   initial-condition words before they enter the Lorenz equations,
+
+2. the precise outer-loop placement of P = P - 1, because the prose and
+   Algorithm 1 pseudocode are not completely consistent.
+
+Neither ambiguity is currently hidden by an implementation assumption.
+
+---
+
+## Implementation status — pixel DNA and diffusion pipeline
+
+Implemented and tested:
+
+- deterministic splitting of an 8-bit pixel into four 2-bit groups,
+- dynamic DNA encoding rule selection using Xbin1...Xbin4,
+- dynamic DNA decoding rule selection using Ybin1...Ybin4,
+- reconstruction of the transformed 8-bit pixel,
+- XOR with Zbin,
+- ciphertext feedback using the previous encrypted output as mask,
+- normal and reversed pixel traversal.
+
+The implementation isolates this publication-defined pixel operation
+from the still-unresolved key-to-Lorenz numerical-state conversion.
+
+The software representation uses the four 2-bit groups in MSB-first
+order:
+
+bits 7..6,
+bits 5..4,
+bits 3..2,
+bits 1..0.
+
+This ordering is documented explicitly as an implementation convention
+rather than an additional claim about the publication.
+
+The single-pass API intentionally does not decrement P and does not
+implement the complete outer encryption loop.
+
+This separation avoids silently choosing between inconsistent
+descriptions of P control flow in the publication.

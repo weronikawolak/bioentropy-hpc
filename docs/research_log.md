@@ -2836,3 +2836,66 @@ suite without regression of the previously implemented components.
 
 The next milestone is exact reproduction of the eight DNA encoding
 and decoding rules from Table 1 of the publication.
+
+---
+
+# Fetteha 2023 — Lorenz-to-DNA control bridge
+
+The chaotic-control bridge from Fetteha et al. 2023 Algorithm 1 has
+been reproduced.
+
+Implemented:
+
+- 200-output Lorenz warm-up/discard,
+- extraction of the first usable chaotic state,
+- Xbin1...Xbin4,
+- Ybin1...Ybin4,
+- Zbin,
+- MATLAB-compatible fix() and mod() behavior.
+
+This stage connects the Lorenz PRNG with the dynamic DNA rule selection.
+
+The implementation explicitly supports negative Lorenz values when
+reproducing MATLAB mod(..., 8) semantics.
+
+The full encryption routine remains intentionally deferred because two
+publication-level issues still require an explicit reproduction policy:
+
+- mapping the XOR-derived 32-bit initial-condition words into the
+  numerical Lorenz state,
+- interpretation of the P decrement / outer encryption iteration.
+
+These ambiguities will be resolved before implementing the complete
+encrypt/decrypt pipeline.
+
+---
+
+# Fetteha 2023 — DNA control and pixel pipeline milestone
+
+The software reproduction now includes the unambiguous low-level
+components of the Fetteha, Sayed & Said (2023) cipher:
+
+- Lorenz Euler step,
+- 200-state chaotic warm-up,
+- Xbin1...Xbin4 extraction,
+- Ybin1...Ybin4 extraction,
+- Zbin extraction,
+- all eight DNA coding rules,
+- dynamic DNA encode/decode transformation,
+- 8-bit pixel split and reconstruction,
+- XOR diffusion,
+- previous-ciphertext feedback,
+- normal and reversed pixel traversal.
+
+The implementation reproduces MATLAB-compatible fix() and mod()
+semantics where required by Algorithm 1.
+
+All project tests currently pass.
+
+The remaining distinction is between:
+
+1. the publication-defined cipher logic, and
+2. the unspecified numerical interpretation of the 32-bit XOR-derived
+   Lorenz initial-condition words.
+
+The second item will remain isolated rather than being silently guessed.
