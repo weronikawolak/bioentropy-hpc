@@ -317,3 +317,14 @@ target_link_libraries(
     PRIVATE
         bioentropy_core
 )
+
+add_executable(
+    fetteha-p-confounding
+    src/benchmark/benchmark_fetteha_p_confounding.cpp
+)
+
+target_link_libraries(
+    fetteha-p-confounding
+    PRIVATE
+        bioentropy_core
+)

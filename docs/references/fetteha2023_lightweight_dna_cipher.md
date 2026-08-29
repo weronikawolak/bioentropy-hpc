@@ -370,3 +370,34 @@ path itself.
 
 The observation requires further evaluation across all possible P
 values before being treated as a general conclusion.
+
+---
+
+## P-confounding campaign across all P classes
+
+The initial synthetic-image observation was extended to every possible
+raw P value from 0 through 15.
+
+For each P class, 50 deterministic perturbation trials were evaluated.
+
+When a one-pixel modification changed P, the mean results across the
+16 P classes were:
+
+NPCR ~ 99.616%
+UACI ~ 33.476%.
+
+When a perturbation preserved P, the corresponding means were:
+
+NPCR ~ 56.374%
+UACI ~ 10.204%.
+
+The effect direction was consistent across all P classes.
+
+This provides strong evidence that the image-dependent P parameter
+materially influences conventional differential-security measurements.
+
+The result remains classified as a diagnostic finding because the
+current P-preserving perturbation uses a +/-16 intensity change, while
+the P-changing condition uses +1.
+
+A matched-magnitude P-preserving control is therefore required.

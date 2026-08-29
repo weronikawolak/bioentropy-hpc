@@ -3093,3 +3093,115 @@ general cryptanalytic conclusion.
 
 A follow-up experiment must cover all raw P values 0...15 before
 drawing stronger conclusions.
+
+---
+
+# Fetteha 2023 — P-confounding differential campaign
+
+A systematic follow-up differential campaign evaluated all possible raw
+P classes:
+
+P = 0 ... 15.
+
+For every P class:
+
+- one deterministic 256x256 grayscale image was generated,
+- the image was adjusted so pixel_sum mod 16 matched the target P,
+- 50 deterministic perturbation locations were evaluated,
+- two perturbation modes were compared.
+
+Total differential comparisons:
+
+16 P classes
+x 50 trials
+x 2 perturbation modes
+= 1600.
+
+## Change-P condition
+
+A single pixel was changed by +1 modulo 256.
+
+This changes:
+
+raw P -> (raw P + 1) mod 16.
+
+Across all 16 P classes, mean differential metrics were approximately:
+
+NPCR = 99.6160%
+UACI = 33.4759%.
+
+These values closely match the conventional reference values:
+
+NPCR ~ 99.61%
+UACI ~ 33.46%.
+
+The behavior was highly consistent across P classes.
+
+## Preserve-P condition
+
+A single pixel was changed by +/-16.
+
+This changes the plaintext while preserving:
+
+pixel_sum mod 16
+
+and therefore preserves P and the number of effective image passes.
+
+Across all P classes, mean differential metrics were approximately:
+
+NPCR = 56.3743%
+UACI = 10.2036%.
+
+Observed P-preserving NPCR ranged approximately from:
+
+40.61% to 67.71%.
+
+Observed P-preserving UACI ranged approximately from:
+
+8.58% to 12.94%.
+
+## Contrast
+
+Mean change-P minus preserve-P differences were approximately:
+
+NPCR:
++43.24 percentage points
+
+UACI:
++23.27 percentage points.
+
+The direction of the effect was consistent across all 16 P classes.
+
+## Interpretation
+
+The experiment provides strong evidence that the image-dependent P
+parameter substantially confounds conventional NPCR/UACI measurements.
+
+Changing one plaintext pixel by one intensity level simultaneously
+changes:
+
+- the plaintext,
+- raw P,
+- the effective pass count and/or pass index,
+- the sequence of normal/reversed full-image passes.
+
+Consequently, the conventional perturbation does not isolate diffusion
+of the plaintext difference through an otherwise unchanged cipher
+execution.
+
+When P was preserved, differential propagation was substantially
+weaker.
+
+## Current limitation
+
+The two perturbation modes are not perfectly magnitude-matched.
+
+The change-P condition modifies one pixel by one level.
+
+The current preserve-P condition modifies one pixel by sixteen levels.
+
+Therefore one additional matched-magnitude control experiment is
+required before treating the P-confounding result as a final
+cryptanalytic conclusion.
+
+The next experiment will preserve P using two small +/-1 pixel changes.
