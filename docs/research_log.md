@@ -4464,3 +4464,46 @@ The main questions for that campaign include:
 4. whether conditioning systematically changes the frequency of
    detectable statistical defects;
 5. whether the negative Rule90 control remains consistently rejected.
+
+
+### Replication-semantics audit
+
+Before generating the full multi-replicate statistical campaign, the
+meaning of `replicate_id` was empirically verified for each source
+family.
+
+Two otherwise identical configurations with replicate identifiers 0
+and 1 were generated and their output SHA-256 fingerprints compared.
+
+Results:
+
+- Chen 4D-DCS: identical stream;
+- Logistic Map with explicit x0: identical stream;
+- Rule30: different stream;
+- Rule90: different stream;
+- ChaCha20 reference: different stream;
+- fixed DNA window: identical stream.
+
+This result revealed an important methodological distinction.
+
+For Chen, Logistic configurations with explicit initial conditions, and
+DNA, changing the experiment replicate identifier alone does not create
+a new source realization.
+
+Using such configurations as nominal independent replicates would
+therefore constitute pseudoreplication.
+
+The final campaign will instead use:
+
+- Chen: distinct deterministic four-dimensional initial states;
+- Logistic precision study: distinct x0 values, paired across all
+  arithmetic representations;
+- Rule30/Rule90: replicate identifiers / derived seeds;
+- ChaCha20: replicate identifiers / derived key and nonce material;
+- DNA: distinct versioned biological sequence windows.
+
+The audit also demonstrates why reproducibility metadata and source
+semantics must be separated: two experiments can have different derived
+framework seeds while still producing exactly the same source
+bitstream if that particular source configuration does not consume the
+seed.

@@ -207,3 +207,118 @@ Statistical-test success must also not be interpreted as evidence of:
 - physical entropy;
 - high min-entropy;
 - unpredictability against an informed adversary.
+
+
+## Source-specific replication semantics
+
+A dedicated replication audit was performed before constructing the
+multi-replicate external-battery campaign.
+
+For each source, two configurations were created that differed only in
+`experiment.replicate_id` (0 versus 1). The resulting bitstream
+SHA-256 fingerprints were compared.
+
+Observed behavior:
+
+| Source | rep0 vs rep1 | Interpretation |
+|---|---|---|
+| Chen 4D-DCS | SAME | replicate_id alone does not change the explicit dynamical state |
+| Logistic Map with explicit x0 | SAME | replicate_id alone does not change the explicit initial state |
+| Rule30 | DIFFERENT | replicate seed changes the CA realization |
+| Rule90 | DIFFERENT | replicate seed changes the CA realization |
+| ChaCha20 reference | DIFFERENT | replicate seed changes derived key/nonce material |
+| DNA sequence | SAME | replicate_id does not change the selected biological sequence |
+
+This audit prevents pseudoreplication.
+
+### Chen 4D-DCS
+
+The primary Chen profile uses explicitly configured dynamical parameters
+and an explicit four-dimensional initial state.
+
+Changing only `replicate_id` changes experiment metadata and the derived
+framework seed but does not alter the generated Chen trajectory.
+
+Therefore independent Chen realizations must be created by explicitly
+changing the initial state.
+
+The reference configuration:
+
+`r = 5`
+
+and:
+
+`(x0, y0, z0, w0) = (0.1, 0.2, 0.3, 0.4)`
+
+is retained as the reference realization.
+
+Additional realizations will use deterministic, reproducibly generated
+initial-state vectors while keeping the system parameter fixed unless a
+separate parameter-sensitivity experiment is explicitly performed.
+
+### Logistic Map
+
+For Logistic configurations using:
+
+`initial_state.mode = explicit`
+
+changing `replicate_id` does not alter the trajectory.
+
+Independent realizations therefore require distinct initial values
+`x0`.
+
+For arithmetic-precision comparisons, the same nominal `x0` must be
+used for float32, float64, fixed-point Q3.29, and MPFR-256 within each
+matched replicate.
+
+This preserves a paired experimental design: arithmetic representation
+changes while the nominal dynamical parameters remain fixed.
+
+### Cellular automata
+
+Rule30 and Rule90 produced different streams when only the replicate
+identifier changed.
+
+The derived experiment seed therefore provides an appropriate mechanism
+for generating distinct CA initial states.
+
+The replicate identifier can consequently be used directly for
+independent CA realizations within a fixed rule/width configuration.
+
+### ChaCha20 reference
+
+ChaCha20 also produced different streams for different replicate
+identifiers.
+
+This is expected because the deterministic framework seed contributes
+to the derived ChaCha20 key/nonce material.
+
+Replicate identifiers can therefore be used directly to generate
+independent deterministic reference streams.
+
+### DNA
+
+DNA sequence output was unchanged when only the replicate identifier
+changed.
+
+The biological sequence itself is the source.
+
+Consequently, DNA replication is defined through distinct versioned
+sequence windows rather than artificial experiment seeds.
+
+The existing DNA campaign uses multiple deterministic windows from
+multiple reference assemblies.
+
+Changing only `replicate_id` for a fixed DNA window would constitute
+pseudoreplication and is prohibited in the final analysis.
+
+### General principle
+
+An experiment replicate is considered independent only when it changes
+the effective source realization.
+
+A changed metadata identifier or derived seed is insufficient when the
+configured source does not consume that seed.
+
+This source-specific replication policy will be used by all subsequent
+statistical campaigns.
