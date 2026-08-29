@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <exception>
 #include <filesystem>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <limits>
@@ -27,10 +28,11 @@ void print_usage(const char* program_name) {
         << "BioEntropy HPC Framework\n\n"
         << "Usage:\n"
         << "  " << program_name
-        << " --config <path>\n\n"
+        << " --config <path> [--dump-bitstream <path>]\n\n"
         << "Options:\n"
-        << "  --config <path>   Path to experiment YAML configuration\n"
-        << "  --help            Show this help message\n";
+        << "  --config <path>          Path to experiment YAML configuration\n"
+        << "  --dump-bitstream <path>  Write evaluated bytes to a binary file\n"
+        << "  --help                   Show this help message\n";
 }
 
 void print_preview(
@@ -62,16 +64,46 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    if (
-        argc != 3 ||
-        std::string(argv[1]) != "--config"
-    ) {
+    std::filesystem::path config_path;
+    std::filesystem::path dump_bitstream_path;
+
+    bool dump_bitstream = false;
+
+    for (int index = 1; index < argc; ++index) {
+        const std::string argument =
+            argv[index];
+
+        if (argument == "--config") {
+            if (index + 1 >= argc) {
+                print_usage(argv[0]);
+                return 1;
+            }
+
+            config_path =
+                argv[++index];
+        } else if (argument == "--dump-bitstream") {
+            if (index + 1 >= argc) {
+                print_usage(argv[0]);
+                return 1;
+            }
+
+            dump_bitstream_path =
+                argv[++index];
+
+            dump_bitstream = true;
+        } else if (argument == "--help") {
+            print_usage(argv[0]);
+            return 0;
+        } else {
+            print_usage(argv[0]);
+            return 1;
+        }
+    }
+
+    if (config_path.empty()) {
         print_usage(argv[0]);
         return 1;
     }
-
-    const std::filesystem::path config_path =
-        argv[2];
 
     try {
         /*
@@ -143,6 +175,33 @@ int main(int argc, char* argv[]) {
 
         std::vector<std::uint8_t>
             buffer(chunk_capacity);
+
+        std::ofstream bitstream_output;
+
+        if (dump_bitstream) {
+            const auto parent =
+                dump_bitstream_path.parent_path();
+
+            if (!parent.empty()) {
+                std::filesystem::create_directories(
+                    parent
+                );
+            }
+
+            bitstream_output.open(
+                dump_bitstream_path,
+                std::ios::out |
+                std::ios::binary |
+                std::ios::trunc
+            );
+
+            if (!bitstream_output) {
+                throw std::runtime_error(
+                    "failed to open bitstream file: "
+                    + dump_bitstream_path.string()
+                );
+            }
+        }
 
         /*
          * Store only the first bytes for a reproducibility
@@ -234,6 +293,23 @@ int main(int argc, char* argv[]) {
                     )
                 );
 
+                if (dump_bitstream) {
+                    bitstream_output.write(
+                        reinterpret_cast<const char*>(
+                            chunk.data()
+                        ),
+                        static_cast<std::streamsize>(
+                            chunk.size()
+                        )
+                    );
+
+                    if (!bitstream_output) {
+                        throw std::runtime_error(
+                            "failed to write raw bitstream"
+                        );
+                    }
+                }
+
                 if (
                     preview.size()
                     < PREVIEW_BYTES
@@ -302,6 +378,23 @@ int main(int argc, char* argv[]) {
                 )
             );
 
+            if (dump_bitstream) {
+                bitstream_output.write(
+                    reinterpret_cast<const char*>(
+                        conditioned.data()
+                    ),
+                    static_cast<std::streamsize>(
+                        conditioned.size()
+                    )
+                );
+
+                if (!bitstream_output) {
+                    throw std::runtime_error(
+                        "failed to write conditioned bitstream"
+                    );
+                }
+            }
+
             const std::size_t preview_size =
                 std::min(
                     PREVIEW_BYTES,
@@ -326,6 +419,16 @@ int main(int argc, char* argv[]) {
          *
          * RAW source output or conditioned XOF output.
          */
+        if (dump_bitstream) {
+            bitstream_output.flush();
+
+            if (!bitstream_output) {
+                throw std::runtime_error(
+                    "failed to flush bitstream file"
+                );
+            }
+        }
+
         const auto statistics =
             statistics_accumulator.finalize();
 
@@ -501,6 +604,13 @@ int main(int argc, char* argv[]) {
             << "Result file   : "
             << result_path.string()
             << '\n';
+
+        if (dump_bitstream) {
+            std::cout
+                << "Bitstream file: "
+                << dump_bitstream_path.string()
+                << '\n';
+        }
 
         std::cout
             << "\nExperiment completed successfully.\n";
