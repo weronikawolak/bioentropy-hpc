@@ -264,3 +264,15 @@ add_test(
     NAME ascon-aead128-test
     COMMAND ascon-aead128-test
 )
+
+
+add_executable(
+    ascon-aead128-benchmark
+    src/benchmark/benchmark_ascon_aead128.cpp
+)
+
+target_link_libraries(
+    ascon-aead128-benchmark
+    PRIVATE
+        bioentropy_core
+)
