@@ -335,3 +335,38 @@ not presented as an undocumented property of the original FPGA design.
 
 Alternative mappings are retained in the key-mapping sensitivity
 analysis.
+
+---
+
+## Differential sensitivity diagnostic
+
+A synthetic 256x256 image experiment compared two one-pixel
+perturbation methods:
+
+1. conventional intensity change that changes P,
+2. intensity change by 16 that preserves P.
+
+For the tested black, white, checkerboard and gradient baselines,
+raw P was zero and therefore corresponded to 16 effective passes.
+
+Changing one pixel by one changed raw P to one, reducing the execution
+to a single effective pass.
+
+Under this condition, NPCR and UACI were approximately:
+
+NPCR ~ 99.6%
+UACI ~ 33.5%
+
+which closely matches conventional reference values.
+
+When P was preserved, differential metrics were substantially lower:
+
+NPCR ~ 52-64%
+UACI ~ 7-10%.
+
+This suggests that P-changing plaintext perturbations may confound
+differential-security measurements by changing the cipher execution
+path itself.
+
+The observation requires further evaluation across all possible P
+values before being treated as a general conclusion.

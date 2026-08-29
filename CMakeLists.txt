@@ -306,3 +306,14 @@ add_test(
     NAME fetteha-dna-cipher-2023-test
     COMMAND fetteha-dna-cipher-2023-test
 )
+
+add_executable(
+    fetteha-synthetic-probe
+    src/benchmark/benchmark_fetteha_synthetic.cpp
+)
+
+target_link_libraries(
+    fetteha-synthetic-probe
+    PRIVATE
+        bioentropy_core
+)

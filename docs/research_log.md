@@ -2977,3 +2977,119 @@ not claimed to reproduce an undocumented original FPGA Q-format.
 
 The sensitivity analysis is retained so alternative mappings can be
 re-evaluated without changing the publication-derived cipher logic.
+
+---
+
+# Fetteha 2023 — synthetic differential sensitivity probe
+
+A targeted differential experiment was performed on four deterministic
+256x256 grayscale workloads:
+
+- black,
+- white,
+- checkerboard,
+- horizontal gradient.
+
+For every workload, 50 deterministic single-pixel modifications were
+evaluated under two perturbation modes.
+
+Mode 1:
+
+single_pixel_plus1
+
+changes one pixel by one intensity level and therefore changes:
+
+P = sum(image) mod 16.
+
+Mode 2:
+
+single_pixel_preserve_p
+
+changes one pixel by exactly 16 intensity levels and therefore preserves
+P.
+
+All four baseline synthetic images had:
+
+raw P = 0
+
+which corresponds to:
+
+16 effective encryption passes
+
+under the documented reproduction profile.
+
+The +1 perturbation changed raw P to:
+
+1
+
+and therefore changed the effective number of passes from:
+
+16 -> 1.
+
+## Results
+
+Publication-style +1 perturbation:
+
+black:
+NPCR = 99.606934%
+UACI = 33.500584%
+
+checkerboard:
+NPCR = 99.606110%
+UACI = 33.526465%
+
+gradient:
+NPCR = 99.609894%
+UACI = 33.676908%
+
+white:
+NPCR = 99.593658%
+UACI = 33.636638%
+
+These values are very close to the commonly reported reference values:
+
+NPCR ~ 99.61%
+UACI ~ 33.46%.
+
+However, when P was deliberately preserved:
+
+black:
+NPCR = 63.944366%
+UACI = 7.147815%
+
+checkerboard:
+NPCR = 63.944366%
+UACI = 7.147815%
+
+gradient:
+NPCR = 52.174591%
+UACI = 9.554864%
+
+white:
+NPCR = 63.944366%
+UACI = 7.147815%
+
+## Interpretation
+
+This preliminary experiment indicates that the excellent NPCR/UACI
+observed under the conventional one-pixel perturbation may be strongly
+confounded by the image-dependent P parameter.
+
+The +1 experiment does not isolate propagation of a one-pixel
+difference through an otherwise identical cipher execution.
+
+It simultaneously changes:
+
+1. the plaintext pixel,
+2. raw P,
+3. the number of complete encryption passes,
+4. the sequence of normal/reversed pass orientations.
+
+The P-preserving perturbation keeps the cipher-control path comparable
+and produces substantially lower differential metrics.
+
+This is a preliminary diagnostic result and is not yet treated as a
+general cryptanalytic conclusion.
+
+A follow-up experiment must cover all raw P values 0...15 before
+drawing stronger conclusions.
