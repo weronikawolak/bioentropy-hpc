@@ -4718,3 +4718,68 @@ for the multi-replicate digital-source campaign.
 
 Source-level interpretation will be based on repeated realizations
 rather than the individual validation replicate.
+
+
+## Full replicate-aware Dieharder RAW campaign
+
+The frozen RAW digital-source screening campaign comprised
+20 deterministic realizations for each of 10 source profiles.
+Each realization contained 16 MiB (134,217,728 bits).
+
+The campaign produced 8,200 parsed result rows with zero input
+rewinds. Forty-six rows were marked INVALID exclusively because
+STS Runs returned a non-finite p-value. These rows were not
+reclassified as statistical failures.
+
+Replicate-level outcomes were derived after consolidating
+multiple rows emitted by the same Dieharder test family.
+
+| Source | FAIL | WEAK | PASS |
+|---|---:|---:|---:|
+| ChaCha20 | 0 | 5 | 15 |
+| Chen 4D-DCS | 0 | 11 | 9 |
+| Logistic Q3.29 | 20 | 0 | 0 |
+| Logistic float32 | 20 | 0 | 0 |
+| Logistic float64 | 5 | 5 | 10 |
+| Logistic MPFR-256 | 0 | 5 | 15 |
+| Rule30, 1024 cells | 0 | 7 | 13 |
+| Rule30, 256 cells | 20 | 0 | 0 |
+| Rule90, 1024 cells | 20 | 0 | 0 |
+| Rule90, 256 cells | 20 | 0 | 0 |
+
+### Logistic float64 finite-precision collapse
+
+Five of the 20 frozen float64 trajectories reached exactly
+1.0 within the 134,217,728-bit experimental horizon and
+subsequently entered the absorbing zero state.
+
+All five collapsed realizations were classified as FAILED by
+the replicate-level Dieharder screening. None of the fifteen
+non-collapsed float64 realizations was classified as FAILED.
+
+This is an observed association within the fixed deterministic
+replicate set and must not be interpreted as an estimate that
+25% of arbitrary Logistic Map initial conditions collapse.
+
+The paired MPFR-256 implementation produced no FAILED
+realizations across the same 20 nominal initial conditions.
+
+### Cellular automata
+
+Rule30 with 256 cells exhibited a recurrent Diehard Craps
+failure in all 20 realizations. Rule30 with 1024 cells produced
+no replicate-level FAIL outcomes in the same screening profile.
+
+Rule90 behaved as the intended negative control, with all
+realizations strongly rejected.
+
+### Interpretation constraints
+
+WEAK results are descriptive screening observations and are
+not treated as independent evidence of a source defect.
+Individual Dieharder output rows are also not interpreted as
+independent hypothesis tests because some test families,
+particularly STS Serial, emit multiple related rows.
+
+Passing this screening does not establish entropy,
+unpredictability, or cryptographic security.

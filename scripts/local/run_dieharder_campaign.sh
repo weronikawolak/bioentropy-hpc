@@ -9,32 +9,24 @@ ROOT="$(
 
 cd "${ROOT}"
 
-CONFIG_DIR="${1:-configs/generated/dieharder-campaign-smoke}"
-
-RESULT_DIR="${2:-results/external/dieharder-campaign-smoke}"
-
-BITSTREAM_DIR="${3:-results/bitstreams/dieharder-campaign-smoke}"
+CONFIG_DIR="${1:-configs/generated/dieharder-campaign}"
+RESULT_DIR="${2:-results/external/dieharder-campaign}"
+BITSTREAM_DIR="${3:-results/bitstreams/dieharder-campaign}"
 
 KEEP_BITSTREAMS="${KEEP_BITSTREAMS:-0}"
+RESUME="${RESUME:-1}"
 
 TESTS=(
-    0
-    2
-    4
-    8
-    9
-    15
-    16
-    100
-    101
-    102
+    0 2 4 8 9
+    15 16
+    100 101 102
 )
 
 mkdir -p \
     "${RESULT_DIR}" \
     "${BITSTREAM_DIR}"
 
-mapfile -t configs < <(
+mapfile -t CONFIGS < <(
     find "${CONFIG_DIR}" \
         -mindepth 2 \
         -maxdepth 2 \
@@ -43,73 +35,113 @@ mapfile -t configs < <(
         | sort
 )
 
-if [[ ${#configs[@]} -eq 0 ]]; then
+if [[ ${#CONFIGS[@]} -eq 0 ]]; then
     echo "No campaign configs found."
     exit 1
 fi
 
-echo "Campaign configs: ${#configs[@]}"
+echo "Campaign configs : ${#CONFIGS[@]}"
+echo "Resume           : ${RESUME}"
+echo "Keep bitstreams  : ${KEEP_BITSTREAMS}"
 
-for config in "${configs[@]}"
+for CONFIG in "${CONFIGS[@]}"
 do
-    group="$(
-        basename "$(dirname "${config}")"
+    GROUP="$(
+        basename "$(dirname "${CONFIG}")"
     )"
 
-    replicate="$(
-        basename "${config}" .yaml
+    REP="$(
+        basename "${CONFIG}" .yaml
     )"
 
-    label="${group}-${replicate}"
+    LABEL="${GROUP}-${REP}"
+    BITSTREAM="${BITSTREAM_DIR}/${LABEL}.bin"
+    SHA_FILE="${RESULT_DIR}/${LABEL}.sha256"
 
-    bitstream="${BITSTREAM_DIR}/${label}.bin"
+    COMPLETE=1
+
+    for TEST in "${TESTS[@]}"
+    do
+        if [[ ! -f "${RESULT_DIR}/${LABEL}-d${TEST}.txt" \
+           || ! -f "${RESULT_DIR}/${LABEL}-d${TEST}.txt.exit" ]]; then
+            COMPLETE=0
+            break
+        fi
+    done
+
+    if [[ "${RESUME}" == "1" && "${COMPLETE}" == "1" ]]; then
+        echo "SKIP complete: ${LABEL}"
+        continue
+    fi
 
     echo
     echo "========================================"
-    echo "${label}"
+    echo "${LABEL}"
     echo "========================================"
 
+    START="$(date +%s)"
+
     ./build/bioentropy-runner \
-        --config "${config}" \
-        --dump-bitstream "${bitstream}"
+        --config "${CONFIG}" \
+        --dump-bitstream "${BITSTREAM}"
 
-    size="$(
-        wc -c < "${bitstream}"
-    )"
+    BYTES="$(wc -c < "${BITSTREAM}")"
 
-    if [[ "${size}" -ne 16777216 ]]; then
-        echo "Unexpected bitstream size: ${size}"
+    if [[ "${BYTES}" -ne 16777216 ]]; then
+        echo "Unexpected bitstream size: ${BYTES}"
         exit 1
     fi
 
-    sha256sum \
-        "${bitstream}" \
-        > "${RESULT_DIR}/${label}.sha256"
+    sha256sum "${BITSTREAM}" \
+        > "${SHA_FILE}"
 
-    for test in "${TESTS[@]}"
+    for TEST in "${TESTS[@]}"
     do
-        output="${RESULT_DIR}/${label}-d${test}.txt"
+        OUTPUT="${RESULT_DIR}/${LABEL}-d${TEST}.txt"
+
+        if [[ "${RESUME}" == "1" && -f "${OUTPUT}" ]]; then
+            echo "  skip d${TEST}"
+            continue
+        fi
+
+        echo "  run  d${TEST}"
 
         set +e
 
         dieharder \
             -g 201 \
-            -f "${bitstream}" \
-            -d "${test}" \
+            -f "${BITSTREAM}" \
+            -d "${TEST}" \
             -p 1 \
-            > "${output}" \
+            > "${OUTPUT}.tmp" \
             2>&1
 
-        exit_code=$?
+        EXIT_CODE=$?
+
         set -e
 
-        printf '%s\n' \
-            "${exit_code}" \
-            > "${output}.exit"
+        mv -f \
+            "${OUTPUT}.tmp" \
+            "${OUTPUT}"
+
+        printf '%s\n' "${EXIT_CODE}" \
+            > "${OUTPUT}.exit.tmp"
+
+        mv -f \
+            "${OUTPUT}.exit.tmp" \
+            "${OUTPUT}.exit"
     done
 
+    END="$(date +%s)"
+
+    {
+        printf 'label\t%s\n' "${LABEL}"
+        printf 'elapsed_seconds\t%s\n' "$((END - START))"
+        printf 'bitstream_bytes\t%s\n' "${BYTES}"
+    } > "${RESULT_DIR}/${LABEL}.task.tsv"
+
     if [[ "${KEEP_BITSTREAMS}" != "1" ]]; then
-        rm -f "${bitstream}"
+        rm -f "${BITSTREAM}"
     fi
 done
 

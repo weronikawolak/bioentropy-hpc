@@ -551,3 +551,32 @@ test-family patterns across realizations.
 Raw row counts are retained for traceability but are not interpreted as
 independent-test failure rates because some Dieharder invocations,
 especially STS Serial, emit multiple related result rows.
+
+
+## Replicate-level aggregation
+
+Primary campaign interpretation is performed at the test-family
+and realization levels rather than by counting raw Dieharder
+output rows.
+
+For a given source realization and test family:
+
+- FAILED if any valid row in the family is FAILED;
+- otherwise WEAK if any valid row is WEAK;
+- otherwise PASSED if at least one valid row is PASSED;
+- INVALID if no valid row is available.
+
+For a source realization, the conservative overall screening
+outcome is FAILED if any family is FAILED, otherwise WEAK if
+any family is WEAK, otherwise PASSED.
+
+This consolidation prevents multi-row families such as STS
+Serial from receiving disproportionate weight.
+
+Non-finite p-values remain INVALID and are never converted into
+FAILED results. Input reuse or any detected rewind also renders
+the affected result invalid.
+
+Replicate-level screening outcomes are descriptive and are not
+interpreted as a formal multiple-testing-adjusted hypothesis
+test.
