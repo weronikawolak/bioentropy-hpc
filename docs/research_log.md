@@ -4783,3 +4783,33 @@ particularly STS Serial, emit multiple related rows.
 
 Passing this screening does not establish entropy,
 unpredictability, or cryptographic security.
+
+
+## Ascon-XOF128 paired conditioning validation
+
+A paired RAW-versus-Ascon-XOF128 workflow was constructed directly from the frozen replicate-aware Dieharder configurations. Validation of the first two replicates across all ten source groups confirmed 20/20 exact pairs. The only configuration change was `conditioning.mode` from `raw` to `ascon_xof128`.
+
+For Ascon-XOF128, the complete RAW realization is retained and supplied to one conditioner invocation. The conditioned output has the same length as the input. Thus each Dieharder realization uses 16 MiB RAW -> one Ascon-XOF128 invocation -> 16 MiB conditioned output.
+
+The RAW input digest is recorded as `conditioning.input_sha256`.
+
+### Logistic float64 collapsed-realization smoke test
+
+Logistic float64 replicate 001, previously observed to collapse to the absorbing zero state and to fail nine RAW Dieharder families, was used as an extreme conditioning validation case.
+
+RAW input SHA-256:
+
+`9d83f5dcc113c2ab47df859ba00b964cfcb8b8705b9673b9198e3e925c87c763`
+
+After Ascon-XOF128 conditioning:
+
+- P(1) = 0.5000052005
+- absolute bias = 0.0000052005
+- Shannon entropy = 0.9999999999 bits/bit
+- conditioned SHA-256 = `1f998c833fe4d021b60876fe10ee956bdc6f513f216982d3294d128f0f29c5e6`
+
+The conditioned 16 MiB realization passed all ten frozen Dieharder test families (d0, d2, d4, d8, d9, d15, d16, d100, d101, d102), with no input rewind reported.
+
+This remains a single-realization validation result. Source-level conclusions require the full paired replicate campaign.
+
+Statistical improvement after deterministic conditioning must not be interpreted as creation of entropy. Ascon-XOF128 can suppress visible statistical structure in deterministic input without introducing physical entropy or establishing unpredictability absent from that input.
