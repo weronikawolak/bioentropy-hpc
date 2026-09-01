@@ -4813,3 +4813,62 @@ The conditioned 16 MiB realization passed all ten frozen Dieharder test families
 This remains a single-realization validation result. Source-level conclusions require the full paired replicate campaign.
 
 Statistical improvement after deterministic conditioning must not be interpreted as creation of entropy. Ascon-XOF128 can suppress visible statistical structure in deterministic input without introducing physical entropy or establishing unpredictability absent from that input.
+
+
+### Paired 2x10 Ascon conditioning smoke campaign
+
+Before launching the full paired conditioning campaign, the
+first two frozen replicates of all ten digital source groups
+were evaluated after Ascon-XOF128 conditioning.
+
+The smoke campaign contained 20 conditioned realizations and
+200 Dieharder test-family executions. It completed with:
+
+- 200/200 Dieharder result files
+- 200/200 exit-status files
+- 20/20 SHA-256 provenance files
+- zero retained temporary bitstreams
+- zero input rewinds
+- zero replicate-level FAIL outcomes
+- 7 replicate-level WEAK outcomes
+- 13 replicate-level PASS outcomes
+- zero INVALID replicate outcomes
+
+Pre-conditioning provenance was verified independently for all
+20 realizations. In every case,
+`conditioning.input_sha256` exactly matched the SHA-256 digest
+of the corresponding frozen RAW realization.
+
+The paired replicate-level RAW -> Ascon transitions were:
+
+- FAILED -> PASSED: 6
+- FAILED -> WEAK: 5
+- WEAK -> PASSED: 6
+- WEAK -> WEAK: 2
+- PASSED -> PASSED: 1
+
+No RAW FAILED realization remained FAILED after conditioning in
+this smoke campaign.
+
+Seven conditioned realizations contained one WEAK test family.
+Six of these involved STS Serial (d102), while one involved
+Diehard Rank 32x32 (d2) for the ChaCha20 reference.
+
+Eight individual WEAK Dieharder rows were observed, but two
+belonged to the same Rule30-256 replicate and the same STS
+Serial family. This therefore corresponds to seven
+family-level WEAK outcomes, illustrating why individual
+Dieharder output rows are not treated as independent results.
+
+Notably, the strong RAW defects previously observed for
+Logistic float32, Logistic Q3.29, collapsed Logistic float64,
+Rule30-256, and both Rule90 widths were no longer expressed as
+replicate-level FAIL outcomes after Ascon-XOF128 conditioning.
+
+These observations support proceeding to the full paired
+20-replicate conditioning campaign.
+
+They demonstrate suppression of visible output-level
+statistical defects, not creation of entropy. Ascon-XOF128 is
+deterministic and cannot introduce physical entropy or
+unpredictability absent from its input.
