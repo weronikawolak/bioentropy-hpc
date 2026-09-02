@@ -4872,3 +4872,91 @@ They demonstrate suppression of visible output-level
 statistical defects, not creation of entropy. Ascon-XOF128 is
 deterministic and cannot introduce physical entropy or
 unpredictability absent from its input.
+
+### Full paired RAW versus Ascon-XOF128 campaign
+
+The full paired conditioning campaign covered all 200 frozen
+digital-source realizations (10 source groups x 20 replicates).
+
+All 200 Ascon inputs were independently verified against the
+stored SHA-256 digests of their corresponding RAW realizations.
+The provenance check passed for 200/200 pairs.
+
+At replicate level, the conditioned campaign produced:
+
+- PASSED: 146/200
+- WEAK: 54/200
+- FAILED: 0/200
+- INVALID: 0/200
+
+The paired RAW -> Ascon replicate transitions were:
+
+- FAILED -> PASSED: 79
+- FAILED -> WEAK: 26
+- WEAK -> PASSED: 22
+- WEAK -> WEAK: 11
+- PASSED -> PASSED: 45
+- PASSED -> WEAK: 17
+
+Thus none of the 105 RAW FAILED realizations remained FAILED
+after Ascon-XOF128 conditioning.
+
+For Logistic float64, all five realizations previously shown to
+undergo exact finite-precision collapse (replicates 001, 005,
+007, 008, and 012) changed from RAW FAILED to conditioned
+PASSED.
+
+The five conditioned Logistic float64 WEAK outcomes occurred
+only among non-collapsed trajectories. Therefore the equality
+between the number of collapsed RAW trajectories and the number
+of conditioned WEAK outcomes is coincidental in this frozen
+replicate set.
+
+The full results reinforce the distinction between statistical
+conditioning and entropy generation. Ascon-XOF128 suppresses
+the visible statistical defects detected in the RAW streams,
+including severe deterministic defects, but this does not imply
+that entropy or unpredictability was created.
+
+### Paired test-family comparison
+
+The paired analysis was additionally performed at the frozen
+Dieharder test-family level, yielding 2000 exact RAW-versus-
+Ascon pairs (200 realizations x 10 test families).
+
+The observed family-level transitions were:
+
+- RAW FAILED -> Ascon PASSED: 798
+- RAW FAILED -> Ascon WEAK: 23
+- RAW INVALID -> Ascon PASSED: 46
+- RAW WEAK -> Ascon PASSED: 43
+- RAW WEAK -> Ascon WEAK: 8
+- RAW PASSED -> Ascon PASSED: 1053
+- RAW PASSED -> Ascon WEAK: 29
+
+No conditioned family was classified as FAILED or INVALID.
+
+Thus all 821 RAW FAILED families were reduced to either PASSED
+or WEAK after conditioning, and all 46 RAW INVALID families
+became PASSED.
+
+The strongest source-specific examples include:
+
+- Logistic float32: all broad RAW family failures disappeared;
+  only one conditioned STS Serial family was WEAK.
+- Logistic Q3.29: severe recurrent RAW failures were reduced to
+  PASSED or occasional WEAK outcomes.
+- Rule30-256 Diehard Craps: 20/20 RAW FAIL became 19 PASSED
+  and 1 WEAK.
+- Rule90 at both widths: the broad RAW rejection pattern was
+  removed, with no conditioned family-level FAIL outcomes.
+
+For the five Logistic float64 realizations known to collapse
+exactly because of finite-precision dynamics, all 50 paired
+test-family outcomes were PASSED after conditioning. This
+includes the five RAW STS Runs families that had been INVALID.
+
+These results demonstrate output-level statistical
+regularization by Ascon-XOF128. They do not demonstrate the
+creation of entropy or unpredictability from deterministic
+input.
