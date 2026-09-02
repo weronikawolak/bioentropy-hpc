@@ -4960,3 +4960,22 @@ These results demonstrate output-level statistical
 regularization by Ascon-XOF128. They do not demonstrate the
 creation of entropy or unpredictability from deterministic
 input.
+
+### Conditioning result figures
+
+Publication-oriented figures were generated from the frozen
+paired RAW-versus-Ascon aggregate tables.
+
+The current figure set contains:
+
+- `raw_vs_ascon_failed_replicates`: replicate-level FAILED
+  counts for each source before and after Ascon-XOF128.
+- `float64_collapsed_conditioning`: test-family outcomes for
+  the five frozen Logistic float64 trajectories that underwent
+  exact finite-precision collapse.
+
+Both figures are generated reproducibly by
+`analysis/scripts/plot_conditioning_results.py`.
+
+The plotting environment is recorded in
+`requirements-analysis.txt`.
