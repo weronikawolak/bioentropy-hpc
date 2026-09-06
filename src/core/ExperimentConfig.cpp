@@ -26,6 +26,23 @@ bool is_valid_hex_seed(const std::string& seed) {
     );
 }
 
+ConditioningMode parse_conditioning_mode(
+    const std::string& value
+) {
+    if (value == "raw") {
+        return ConditioningMode::Raw;
+    }
+
+    if (value == "ascon_xof128") {
+        return ConditioningMode::AsconXof128;
+    }
+
+    throw std::invalid_argument(
+        "unsupported conditioning mode: "
+        + value
+    );
+}
+
 LogisticInitialStateMode parse_initial_state_mode(
     const std::string& value
 ) {
@@ -56,6 +73,32 @@ LogisticExtractionMethod parse_extraction_method(
     );
 }
 
+LogisticArithmeticMode
+parse_logistic_arithmetic_mode(
+    const std::string& value
+) {
+    if (value == "float32") {
+        return LogisticArithmeticMode::Float32;
+    }
+
+    if (value == "float64") {
+        return LogisticArithmeticMode::Float64;
+    }
+
+    if (value == "fixed_q3_29") {
+        return LogisticArithmeticMode::FixedQ3_29;
+    }
+
+    if (value == "mpfr_256") {
+        return LogisticArithmeticMode::Mpfr256;
+    }
+
+    throw std::invalid_argument(
+        "unsupported logistic arithmetic mode: "
+        + value
+    );
+}
+
 LogisticMapConfig parse_logistic_config(
     const YAML::Node& parameters
 ) {
@@ -75,6 +118,26 @@ LogisticMapConfig parse_logistic_config(
 
     config.r =
         parameters["r"].as<double>();
+
+    config.r_literal =
+        parameters["r"].Scalar();
+
+    const YAML::Node arithmetic =
+        parameters["arithmetic"];
+
+    if (arithmetic) {
+        if (!arithmetic["mode"]) {
+            throw std::invalid_argument(
+                "missing logistic arithmetic.mode"
+            );
+        }
+
+        config.arithmetic_mode =
+            parse_logistic_arithmetic_mode(
+                arithmetic["mode"]
+                    .as<std::string>()
+            );
+    }
 
     if (parameters["burn_in"]) {
         config.burn_in =
@@ -120,6 +183,110 @@ LogisticMapConfig parse_logistic_config(
 
         config.x0 =
             initial_state["x0"].as<double>();
+
+        config.x0_literal =
+            initial_state["x0"].Scalar();
+    }
+
+    return config;
+}
+
+Chen4DExtractionMethod
+parse_chen_4d_extraction_method(
+    const std::string& value
+) {
+    if (
+        value ==
+        "threshold_per_coordinate"
+    ) {
+        return
+            Chen4DExtractionMethod::
+                ThresholdPerCoordinate;
+    }
+
+    throw std::invalid_argument(
+        "unsupported Chen 4D-DCS extraction "
+        "method: "
+        + value
+    );
+}
+
+Chen4DDcsConfig
+parse_chen_4d_dcs_config(
+    const YAML::Node& parameters
+) {
+    if (!parameters) {
+        throw std::invalid_argument(
+            "missing source.parameters section "
+            "for Chen 4D-DCS source"
+        );
+    }
+
+    if (!parameters["r"]) {
+        throw std::invalid_argument(
+            "missing Chen 4D-DCS parameter: r"
+        );
+    }
+
+    const YAML::Node initial_state =
+        parameters["initial_state"];
+
+    if (!initial_state) {
+        throw std::invalid_argument(
+            "missing Chen 4D-DCS initial_state"
+        );
+    }
+
+    for (
+        const char* key :
+        {"x0", "y0", "z0", "w0"}
+    ) {
+        if (!initial_state[key]) {
+            throw std::invalid_argument(
+                std::string(
+                    "missing Chen 4D-DCS "
+                    "initial-state parameter: "
+                )
+                + key
+            );
+        }
+    }
+
+    Chen4DDcsConfig config{};
+
+    config.r =
+        parameters["r"].as<double>();
+
+    config.x0 =
+        initial_state["x0"].as<double>();
+
+    config.y0 =
+        initial_state["y0"].as<double>();
+
+    config.z0 =
+        initial_state["z0"].as<double>();
+
+    config.w0 =
+        initial_state["w0"].as<double>();
+
+    if (parameters["burn_in"]) {
+        config.burn_in =
+            parameters["burn_in"]
+                .as<std::uint64_t>();
+    }
+
+    if (parameters["threshold"]) {
+        config.threshold =
+            parameters["threshold"]
+                .as<double>();
+    }
+
+    if (parameters["extraction"]) {
+        config.extraction =
+            parse_chen_4d_extraction_method(
+                parameters["extraction"]
+                    .as<std::string>()
+            );
     }
 
     return config;
@@ -317,6 +484,9 @@ ExperimentConfig ExperimentConfig::from_yaml(
         const YAML::Node source =
             root["source"];
 
+        const YAML::Node conditioning =
+            root["conditioning"];
+
         const YAML::Node execution =
             root["execution"];
 
@@ -350,6 +520,20 @@ ExperimentConfig ExperimentConfig::from_yaml(
             source["output_bits"]
                 .as<std::uint64_t>();
 
+        if (conditioning) {
+            if (!conditioning["mode"]) {
+                throw std::invalid_argument(
+                    "missing conditioning.mode"
+                );
+            }
+
+            config.conditioning.mode =
+                parse_conditioning_mode(
+                    conditioning["mode"]
+                        .as<std::string>()
+                );
+        }
+
         if (
             execution &&
             execution["chunk_bytes"]
@@ -359,7 +543,18 @@ ExperimentConfig ExperimentConfig::from_yaml(
                     .as<std::uint64_t>();
         }
 
-        if (config.source.type == "logistic") {
+        if (
+            config.source.type ==
+            "chen_4d_dcs"
+        ) {
+            config.source.parameters =
+                parse_chen_4d_dcs_config(
+                    source["parameters"]
+                );
+        } else if (
+            config.source.type ==
+            "logistic"
+        ) {
             config.source.parameters =
                 parse_logistic_config(
                     source["parameters"]
@@ -445,7 +640,69 @@ void ExperimentConfig::validate() const {
         );
     }
 
-    if (source.type == "logistic") {
+    if (source.type == "chen_4d_dcs") {
+        const auto* chen =
+            std::get_if<Chen4DDcsConfig>(
+                &source.parameters
+            );
+
+        if (chen == nullptr) {
+            throw std::invalid_argument(
+                "Chen 4D-DCS source has "
+                "invalid parameters"
+            );
+        }
+
+        if (
+            !std::isfinite(chen->r)
+            || chen->r < 0.0
+            || chen->r > 10.0
+        ) {
+            throw std::invalid_argument(
+                "Chen 4D-DCS r must satisfy "
+                "0 <= r <= 10"
+            );
+        }
+
+        const auto valid_state =
+            [](
+                const double value
+            ) {
+                return
+                    std::isfinite(value)
+                    && value >= 0.0
+                    && value < 1.0;
+            };
+
+        if (
+            !valid_state(chen->x0)
+            || !valid_state(chen->y0)
+            || !valid_state(chen->z0)
+            || !valid_state(chen->w0)
+        ) {
+            throw std::invalid_argument(
+                "Chen 4D-DCS initial states "
+                "must satisfy 0 <= state < 1"
+            );
+        }
+
+        if (
+            !std::isfinite(
+                chen->threshold
+            )
+            || chen->threshold <= 0.0
+            || chen->threshold >= 1.0
+        ) {
+            throw std::invalid_argument(
+                "Chen 4D-DCS threshold must "
+                "satisfy 0 < threshold < 1"
+            );
+        }
+
+        return;
+    }
+
+if (source.type == "logistic") {
         const auto* logistic =
             std::get_if<LogisticMapConfig>(
                 &source.parameters

@@ -3,6 +3,7 @@
 #include "bioentropy/sources/CellularAutomatonSource.hpp"
 #include "bioentropy/sources/ChaCha20ReferenceSource.hpp"
 #include "bioentropy/sources/DNASequenceSource.hpp"
+#include "bioentropy/sources/Chen4DDcsSource.hpp"
 #include "bioentropy/sources/LogisticMapSource.hpp"
 
 #include <memory>
@@ -15,6 +16,26 @@ create_randomness_source(
     const SourceConfig& config,
     const Seed256& seed
 ) {
+    if (config.type == "chen_4d_dcs") {
+        const auto* chen =
+            std::get_if<Chen4DDcsConfig>(
+                &config.parameters
+            );
+
+        if (chen == nullptr) {
+            throw std::invalid_argument(
+                "invalid parameters for "
+                "Chen 4D-DCS source"
+            );
+        }
+
+        return std::make_unique<
+            Chen4DDcsSource
+        >(
+            *chen
+        );
+    }
+
     if (config.type == "logistic") {
         const auto* logistic =
             std::get_if<LogisticMapConfig>(

@@ -1,0 +1,1065 @@
+#include "bioentropy/crypto/FettehaDnaCipher2023.hpp"
+
+#include <array>
+#include <cmath>
+#include <cstdint>
+#include <cstdlib>
+#include <iostream>
+#include <stdexcept>
+#include <vector>
+
+namespace {
+
+void require(
+    const bool condition,
+    const char* message
+) {
+    if (!condition) {
+        std::cerr
+            << "FAILED: "
+            << message
+            << '\n';
+
+        std::exit(EXIT_FAILURE);
+    }
+}
+
+bool near(
+    const double first,
+    const double second,
+    const double tolerance = 1.0e-12
+) {
+    return std::abs(
+        first - second
+    ) <= tolerance;
+}
+
+}  // namespace
+
+int main() {
+    using bioentropy::DnaBase2023;
+    using bioentropy::FettehaDnaCipher2023;
+
+    const std::vector<std::uint8_t>
+        pixels{
+            10,
+            20,
+            30,
+            40
+        };
+
+    require(
+        FettehaDnaCipher2023::
+            pixel_sum(pixels)
+        == 100,
+        "pixel sum mismatch"
+    );
+
+    require(
+        FettehaDnaCipher2023::
+            iteration_count(pixels)
+        == 4,
+        "P mismatch"
+    );
+
+    FettehaDnaCipher2023::Key key{};
+
+    for (
+        std::size_t i = 0;
+        i < key.size();
+        ++i
+    ) {
+        key[i] =
+            static_cast<std::uint8_t>(i);
+    }
+
+    const auto words =
+        FettehaDnaCipher2023::
+            split_key(key);
+
+    require(
+        words[0] == 0x00010203U,
+        "key word 1 mismatch"
+    );
+
+    require(
+        words[7] == 0x1c1d1e1fU,
+        "key word 8 mismatch"
+    );
+
+    const auto initial =
+        FettehaDnaCipher2023::
+            derive_raw_initial_conditions(
+                words
+            );
+
+    require(
+        initial.x0
+        == (
+            words[0]
+            ^ words[1]
+            ^ words[2]
+            ^ words[3]
+        ),
+        "X0 mismatch"
+    );
+
+    require(
+        initial.y0
+        == (
+            words[2]
+            ^ words[3]
+            ^ words[4]
+            ^ words[5]
+        ),
+        "Y0 mismatch"
+    );
+
+    require(
+        initial.z0
+        == (
+            words[4]
+            ^ words[5]
+            ^ words[6]
+            ^ words[7]
+        ),
+        "Z0 mismatch"
+    );
+
+    const bioentropy::LorenzState2023
+        state{
+            10.0,
+            10.0,
+            10.0
+        };
+
+    const auto next =
+        FettehaDnaCipher2023::
+            lorenz_step(state);
+
+    require(
+        near(next.x, 10.0),
+        "Lorenz X1 mismatch"
+    );
+
+    require(
+        near(next.y, 10.390625),
+        "Lorenz Y1 mismatch"
+    );
+
+    require(
+        near(next.z, 10.625),
+        "Lorenz Z1 mismatch"
+    );
+
+    /*
+     * Exact Fetteha et al. 2023
+     * Table 1.
+     *
+     * Columns:
+     * 00, 01, 10, 11
+     */
+    const std::array<
+        std::array<DnaBase2023, 4>,
+        8
+    > expected_rules{{
+        {
+            DnaBase2023::G,
+            DnaBase2023::A,
+            DnaBase2023::T,
+            DnaBase2023::C
+        },
+        {
+            DnaBase2023::T,
+            DnaBase2023::C,
+            DnaBase2023::G,
+            DnaBase2023::A
+        },
+        {
+            DnaBase2023::A,
+            DnaBase2023::C,
+            DnaBase2023::G,
+            DnaBase2023::T
+        },
+        {
+            DnaBase2023::G,
+            DnaBase2023::T,
+            DnaBase2023::A,
+            DnaBase2023::C
+        },
+        {
+            DnaBase2023::C,
+            DnaBase2023::T,
+            DnaBase2023::A,
+            DnaBase2023::G
+        },
+        {
+            DnaBase2023::A,
+            DnaBase2023::G,
+            DnaBase2023::C,
+            DnaBase2023::T
+        },
+        {
+            DnaBase2023::C,
+            DnaBase2023::A,
+            DnaBase2023::T,
+            DnaBase2023::G
+        },
+        {
+            DnaBase2023::T,
+            DnaBase2023::G,
+            DnaBase2023::C,
+            DnaBase2023::A
+        }
+    }};
+
+    for (
+        std::uint8_t rule = 1;
+        rule <= 8;
+        ++rule
+    ) {
+        for (
+            std::uint8_t pair = 0;
+            pair < 4;
+            ++pair
+        ) {
+            const auto base =
+                FettehaDnaCipher2023::
+                    dna_encode_pair(
+                        pair,
+                        rule
+                    );
+
+            require(
+                base
+                == expected_rules[
+                    rule - 1
+                ][pair],
+                "DNA Table 1 mismatch"
+            );
+
+            require(
+                FettehaDnaCipher2023::
+                    dna_decode_base(
+                        base,
+                        rule
+                    )
+                == pair,
+                "DNA round-trip mismatch"
+            );
+
+            require(
+                FettehaDnaCipher2023::
+                    dna_transform_pair(
+                        pair,
+                        rule,
+                        rule
+                    )
+                == pair,
+                "same-rule transform mismatch"
+            );
+        }
+    }
+
+    /*
+     * Cross-rule test.
+     *
+     * Rule 1:
+     * 00 -> G
+     *
+     * Rule 8:
+     * G -> 01
+     *
+     * Therefore:
+     * encode(00, rule 1)
+     * decode(rule 8)
+     * -> 01
+     */
+    require(
+        FettehaDnaCipher2023::
+            dna_transform_pair(
+                0b00,
+                1,
+                8
+            )
+        == 0b01,
+        "cross-rule DNA transform mismatch"
+    );
+
+    bool invalid_rule_rejected = false;
+
+    try {
+        (void)
+            FettehaDnaCipher2023::
+                dna_encode_pair(
+                    0,
+                    0
+                );
+    } catch (
+        const std::invalid_argument&
+    ) {
+        invalid_rule_rejected = true;
+    }
+
+    require(
+        invalid_rule_rejected,
+        "invalid DNA rule was not rejected"
+    );
+
+
+    /*
+     * Algorithm 1 chaotic warm-up.
+     *
+     * The paper discards the first
+     * 200 Lorenz outputs.
+     */
+    const bioentropy::LorenzState2023
+        published_demo_initial{
+            10.0,
+            10.0,
+            10.0
+        };
+
+    const auto after_200 =
+        FettehaDnaCipher2023::
+            advance_lorenz(
+                published_demo_initial,
+                200
+            );
+
+    require(
+        near(
+            after_200.x,
+            -4.708084970346886,
+            1.0e-9
+        ),
+        "Lorenz X200 regression mismatch"
+    );
+
+    require(
+        near(
+            after_200.y,
+            0.4125556683661835,
+            1.0e-9
+        ),
+        "Lorenz Y200 regression mismatch"
+    );
+
+    require(
+        near(
+            after_200.z,
+            20.470682226520772,
+            1.0e-9
+        ),
+        "Lorenz Z200 regression mismatch"
+    );
+
+    /*
+     * i = 201 is the first state used
+     * after the 200-output discard.
+     */
+    const auto first_usable =
+        FettehaDnaCipher2023::
+            lorenz_step(
+                after_200
+            );
+
+    require(
+        near(
+            first_usable.x,
+            -4.388044930427319,
+            1.0e-9
+        ),
+        "Lorenz X201 regression mismatch"
+    );
+
+    require(
+        near(
+            first_usable.y,
+            0.5737728256280056,
+            1.0e-9
+        ),
+        "Lorenz Y201 regression mismatch"
+    );
+
+    require(
+        near(
+            first_usable.z,
+            20.13565322968712,
+            1.0e-9
+        ),
+        "Lorenz Z201 regression mismatch"
+    );
+
+    const auto first_controls =
+        FettehaDnaCipher2023::
+            derive_dna_controls(
+                first_usable
+            );
+
+    const std::array<std::uint8_t, 4>
+        expected_x_rules{
+            7,
+            3,
+            2,
+            7
+        };
+
+    const std::array<std::uint8_t, 4>
+        expected_y_rules{
+            5,
+            3,
+            7,
+            2
+        };
+
+    require(
+        first_controls.x_rules
+        == expected_x_rules,
+        "Xbin rule extraction mismatch"
+    );
+
+    require(
+        first_controls.y_rules
+        == expected_y_rules,
+        "Ybin rule extraction mismatch"
+    );
+
+    require(
+        first_controls.z_bin == 3,
+        "Zbin extraction mismatch"
+    );
+
+    /*
+     * Independent synthetic regression
+     * including negative values.
+     *
+     * This specifically verifies MATLAB
+     * fix()/mod() semantics.
+     */
+    const bioentropy::LorenzState2023
+        synthetic_controls_state{
+            0.123456789,
+            -0.234567891,
+            0.345678912
+        };
+
+    const auto synthetic_controls =
+        FettehaDnaCipher2023::
+            derive_dna_controls(
+                synthetic_controls_state
+            );
+
+    require(
+        synthetic_controls.x_rules
+        == std::array<std::uint8_t, 4>{
+            4, 3, 7, 8
+        },
+        "synthetic X control mismatch"
+    );
+
+    require(
+        synthetic_controls.y_rules
+        == std::array<std::uint8_t, 4>{
+            8, 5, 4, 8
+        },
+        "negative MATLAB-mod semantics mismatch"
+    );
+
+    require(
+        synthetic_controls.z_bin == 3,
+        "synthetic Z control mismatch"
+    );
+
+    /*
+     * Every DNA selector generated by
+     * Algorithm 1 must lie in [1, 8].
+     */
+    for (
+        const auto rule :
+        first_controls.x_rules
+    ) {
+        require(
+            rule >= 1 && rule <= 8,
+            "X rule outside [1, 8]"
+        );
+    }
+
+    for (
+        const auto rule :
+        first_controls.y_rules
+    ) {
+        require(
+            rule >= 1 && rule <= 8,
+            "Y rule outside [1, 8]"
+        );
+    }
+
+
+    /*
+     * Exhaustive byte split/join test.
+     */
+    for (
+        unsigned value = 0;
+        value <= 255;
+        ++value
+    ) {
+        const auto byte =
+            static_cast<std::uint8_t>(
+                value
+            );
+
+        const auto pairs =
+            FettehaDnaCipher2023::
+                split_pixel_pairs(byte);
+
+        require(
+            FettehaDnaCipher2023::
+                join_pixel_pairs(pairs)
+            == byte,
+            "pixel pair split/join mismatch"
+        );
+    }
+
+    /*
+     * If encoding and decoding use the
+     * same DNA rule, the DNA stage must
+     * reproduce the original 2-bit value.
+     */
+    bioentropy::DnaControlValues2023
+        identity_controls{
+            {1, 2, 3, 4},
+            {1, 2, 3, 4},
+            3
+        };
+
+    for (
+        unsigned value = 0;
+        value <= 255;
+        ++value
+    ) {
+        const auto byte =
+            static_cast<std::uint8_t>(
+                value
+            );
+
+        require(
+            FettehaDnaCipher2023::
+                dna_transform_pixel(
+                    byte,
+                    identity_controls
+                )
+            == byte,
+            "same-rule DNA pixel transform mismatch"
+        );
+    }
+
+    /*
+     * Algorithm 1 diffusion / feedback test.
+     *
+     * DNA stage is identity here, therefore:
+     *
+     * C0 = 0x12 XOR 3 XOR 0
+     *    = 0x11
+     *
+     * C1 = 0x34 XOR 3 XOR 0x11
+     *    = 0x26
+     *
+     * C2 = 0x56 XOR 3 XOR 0x26
+     *    = 0x73
+     */
+    const std::vector<std::uint8_t>
+        small_image{
+            0x12,
+            0x34,
+            0x56
+        };
+
+    const std::vector<
+        bioentropy::DnaControlValues2023
+    > identity_control_sequence(
+        small_image.size(),
+        identity_controls
+    );
+
+    const auto normal_pass =
+        FettehaDnaCipher2023::
+            encrypt_single_pass(
+                small_image,
+                identity_control_sequence,
+                false
+            );
+
+    require(
+        normal_pass
+        == std::vector<std::uint8_t>{
+            0x11,
+            0x26,
+            0x73
+        },
+        "normal-order feedback encryption mismatch"
+    );
+
+    /*
+     * Odd-P pixel confusion:
+     * process reversed image order.
+     *
+     * 0x56 -> 0x55
+     * 0x34 -> 0x62
+     * 0x12 -> 0x73
+     */
+    const auto flipped_pass =
+        FettehaDnaCipher2023::
+            encrypt_single_pass(
+                small_image,
+                identity_control_sequence,
+                true
+            );
+
+    require(
+        flipped_pass
+        == std::vector<std::uint8_t>{
+            0x55,
+            0x62,
+            0x73
+        },
+        "flipped-order feedback encryption mismatch"
+    );
+
+    /*
+     * DNA transform must also support
+     * different encoding and decoding
+     * rules for each pair.
+     */
+    bioentropy::DnaControlValues2023
+        cross_rule_controls{
+            {1, 1, 1, 1},
+            {8, 8, 8, 8},
+            1
+        };
+
+    const auto cross_rule_pixel =
+        FettehaDnaCipher2023::
+            dna_transform_pixel(
+                0x00,
+                cross_rule_controls
+            );
+
+    require(
+        cross_rule_pixel != 0x00,
+        "cross-rule DNA transform had no effect"
+    );
+
+
+    /*
+     * Reproduction profile v2:
+     *
+     * raw P=0 -> 16 effective passes.
+     *
+     * This is required to remain
+     * compatible with the publication's
+     * reported encryption of all-black
+     * images.
+     */
+    const std::vector<std::uint8_t>
+        p_zero_image(
+            64,
+            0x00
+        );
+
+    require(
+        FettehaDnaCipher2023::
+            iteration_count(
+                p_zero_image
+            )
+        == 0,
+        "raw P=0 fixture mismatch"
+    );
+
+    require(
+        FettehaDnaCipher2023::
+            effective_pass_count(0)
+        == 16,
+        "raw P=0 must map to 16 passes"
+    );
+
+    auto expected_p_zero =
+        p_zero_image;
+
+    const auto p_zero_controls =
+        FettehaDnaCipher2023::
+            generate_control_sequence(
+                published_demo_initial,
+                p_zero_image.size()
+            );
+
+    for (
+        int pass = 16;
+        pass >= 1;
+        --pass
+    ) {
+        expected_p_zero =
+            FettehaDnaCipher2023::
+                encrypt_single_pass(
+                    expected_p_zero,
+                    p_zero_controls,
+                    (pass % 2) != 0
+                );
+    }
+
+    const auto actual_p_zero =
+        FettehaDnaCipher2023::
+            encrypt_with_initial_state(
+                p_zero_image,
+                published_demo_initial
+            );
+
+    require(
+        actual_p_zero
+        == expected_p_zero,
+        "raw P=0 / 16-pass orchestration mismatch"
+    );
+
+    require(
+        FettehaDnaCipher2023::
+            decrypt_with_initial_state(
+                actual_p_zero,
+                published_demo_initial,
+                0
+            )
+        == p_zero_image,
+        "raw P=0 round-trip mismatch"
+    );
+
+    /*
+     * P = 1:
+     * exactly one complete, flipped pass.
+     */
+    const std::vector<std::uint8_t>
+        p_one_image{
+            0x01
+        };
+
+    const auto p_one_controls =
+        FettehaDnaCipher2023::
+            generate_control_sequence(
+                published_demo_initial,
+                p_one_image.size()
+            );
+
+    const auto expected_p_one =
+        FettehaDnaCipher2023::
+            encrypt_single_pass(
+                p_one_image,
+                p_one_controls,
+                true
+            );
+
+    require(
+        FettehaDnaCipher2023::
+            encrypt_with_initial_state(
+                p_one_image,
+                published_demo_initial
+            )
+        == expected_p_one,
+        "P=1 orchestration mismatch"
+    );
+
+    /*
+     * P = 2:
+     *
+     * first pass: P=2 -> normal
+     * second pass: P=1 -> flipped
+     */
+    const std::vector<std::uint8_t>
+        p_two_image{
+            0x01,
+            0x01
+        };
+
+    require(
+        FettehaDnaCipher2023::
+            iteration_count(
+                p_two_image
+            )
+        == 2,
+        "P=2 fixture mismatch"
+    );
+
+    const auto p_two_controls =
+        FettehaDnaCipher2023::
+            generate_control_sequence(
+                published_demo_initial,
+                p_two_image.size()
+            );
+
+    const auto pass_two =
+        FettehaDnaCipher2023::
+            encrypt_single_pass(
+                p_two_image,
+                p_two_controls,
+                false
+            );
+
+    const auto pass_one =
+        FettehaDnaCipher2023::
+            encrypt_single_pass(
+                pass_two,
+                p_two_controls,
+                true
+            );
+
+    require(
+        FettehaDnaCipher2023::
+            encrypt_with_initial_state(
+                p_two_image,
+                published_demo_initial
+            )
+        == pass_one,
+        "P=2 orchestration mismatch"
+    );
+
+    /*
+     * Chaotic-control generation must be
+     * perfectly deterministic.
+     */
+    require(
+        FettehaDnaCipher2023::
+            generate_control_sequence(
+                published_demo_initial,
+                32
+            )
+        ==
+        FettehaDnaCipher2023::
+            generate_control_sequence(
+                published_demo_initial,
+                32
+            ),
+        "control sequence is not deterministic"
+    );
+
+
+    /*
+     * BioEntropy HPC reproduction profile:
+     *
+     * signed int32 * 2^-26.
+     */
+    require(
+        near(
+            FettehaDnaCipher2023::
+                map_raw_condition_s32_2neg26(
+                    0x00000000U
+                ),
+            0.0
+        ),
+        "key mapping zero mismatch"
+    );
+
+    /*
+     * +10 represented with scale 2^-26.
+     */
+    require(
+        near(
+            FettehaDnaCipher2023::
+                map_raw_condition_s32_2neg26(
+                    0x28000000U
+                ),
+            10.0
+        ),
+        "key mapping +10 mismatch"
+    );
+
+    require(
+        near(
+            FettehaDnaCipher2023::
+                map_raw_condition_s32_2neg26(
+                    0x40000000U
+                ),
+            16.0
+        ),
+        "key mapping +16 mismatch"
+    );
+
+    require(
+        near(
+            FettehaDnaCipher2023::
+                map_raw_condition_s32_2neg26(
+                    0x80000000U
+                ),
+            -32.0
+        ),
+        "key mapping minimum mismatch"
+    );
+
+    require(
+        near(
+            FettehaDnaCipher2023::
+                map_raw_condition_s32_2neg26(
+                    0xFFFFFFFFU
+                ),
+            -1.0 / 67108864.0
+        ),
+        "key mapping negative LSB mismatch"
+    );
+
+    /*
+     * Full key-to-Lorenz derivation must
+     * equal the explicit split/XOR/map path.
+     */
+    const auto mapped_raw =
+        FettehaDnaCipher2023::
+            map_raw_initial_conditions(
+                initial
+            );
+
+    const auto mapped_direct =
+        FettehaDnaCipher2023::
+            derive_initial_state(key);
+
+    require(
+        near(
+            mapped_raw.x,
+            mapped_direct.x
+        )
+        &&
+        near(
+            mapped_raw.y,
+            mapped_direct.y
+        )
+        &&
+        near(
+            mapped_raw.z,
+            mapped_direct.z
+        ),
+        "full key-to-Lorenz mapping mismatch"
+    );
+
+
+    /*
+     * Full public encrypt/decrypt round-trip.
+     *
+     * Deterministic non-degenerate key:
+     *
+     * SHA256(
+     *   "BIOENTROPY-FETTEHA-ROUNDTRIP-v1"
+     * )
+     */
+    const FettehaDnaCipher2023::Key
+        roundtrip_key{
+            0xfc, 0x93, 0x22, 0x49,
+            0x33, 0x3c, 0x5f, 0xd1,
+            0x3b, 0xab, 0xc5, 0x1b,
+            0xe9, 0x9e, 0x2e, 0x39,
+            0x28, 0x68, 0x27, 0xb5,
+            0x33, 0x00, 0xcc, 0xa7,
+            0x38, 0x22, 0x7f, 0x90,
+            0x9b, 0xe8, 0x5b, 0xda
+        };
+
+    const auto roundtrip_state =
+        FettehaDnaCipher2023::
+            derive_initial_state(
+                roundtrip_key
+            );
+
+    require(
+        std::isfinite(roundtrip_state.x)
+        &&
+        std::isfinite(roundtrip_state.y)
+        &&
+        std::isfinite(roundtrip_state.z),
+        "round-trip key produced invalid state"
+    );
+
+    /*
+     * Exercise every possible P value:
+     *
+     * P = 0 ... 15.
+     */
+    for (
+        std::uint8_t expected_p = 0;
+        expected_p <= 15;
+        ++expected_p
+    ) {
+        std::vector<std::uint8_t>
+            image{
+                expected_p == 0
+                    ? static_cast<std::uint8_t>(16)
+                    : expected_p,
+                0,
+                0,
+                0
+            };
+
+        require(
+            FettehaDnaCipher2023::
+                iteration_count(image)
+            == expected_p,
+            "P fixture mismatch"
+        );
+
+        const auto encrypted =
+            FettehaDnaCipher2023::
+                encrypt(
+                    image,
+                    roundtrip_key
+                );
+
+        require(
+            encrypted.p == expected_p,
+            "returned P mismatch"
+        );
+
+        const auto decrypted =
+            FettehaDnaCipher2023::
+                decrypt(
+                    encrypted.ciphertext,
+                    roundtrip_key,
+                    encrypted.p
+                );
+
+        require(
+            decrypted == image,
+            "full encrypt/decrypt round-trip mismatch"
+        );
+    }
+
+    /*
+     * Larger image to exercise feedback,
+     * control evolution and reversal.
+     */
+    const std::vector<std::uint8_t>
+        larger_image{
+            13, 27, 41, 55,
+            69, 83, 97, 111,
+            125, 139, 153, 167,
+            181, 195, 209, 223
+        };
+
+    const auto larger_encrypted =
+        FettehaDnaCipher2023::
+            encrypt(
+                larger_image,
+                roundtrip_key
+            );
+
+    const auto larger_decrypted =
+        FettehaDnaCipher2023::
+            decrypt(
+                larger_encrypted.ciphertext,
+                roundtrip_key,
+                larger_encrypted.p
+            );
+
+    require(
+        larger_decrypted
+        == larger_image,
+        "larger-image round-trip mismatch"
+    );
+
+    std::cout
+        << "Fetteha DNA cipher 2023 "
+        << "core and DNA tests passed\n";
+
+    return EXIT_SUCCESS;
+}

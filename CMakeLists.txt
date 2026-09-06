@@ -4,8 +4,12 @@ project(
     BioEntropyHPC
     VERSION 0.1.0
     DESCRIPTION "HPC-assisted evaluation framework for bio-inspired randomness sources and lightweight cryptography"
-    LANGUAGES CXX
+    LANGUAGES C CXX
 )
+
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_EXTENSIONS OFF)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -16,6 +20,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(OpenMP REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(yaml-cpp REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(MPFR REQUIRED IMPORTED_TARGET mpfr)
 
 add_library(
     bioentropy_core
@@ -23,17 +29,29 @@ add_library(
     src/core/SeedManager.cpp
     src/sources/RandomnessSourceFactory.cpp
     src/sources/chaos/LogisticMapSource.cpp
+    src/sources/chaos/Chen4DDcsSource.cpp
     src/sources/cellular/CellularAutomatonSource.cpp
     src/sources/reference/ChaCha20ReferenceSource.cpp
     src/sources/dna/DNASequenceSource.cpp
     src/metrics/BitstreamStatistics.cpp
     src/io/ResultWriter.cpp
+    src/conditioning/AsconXof128Conditioner.cpp
+    src/conditioning/ascon_xof128_variable.c
+    src/crypto/AsconAead128.cpp
+    src/crypto/FettehaDnaCipher2023.cpp
+    third_party/ascon-c/crypto_aead/asconaead128/ref/aead.c
+    third_party/ascon-c/crypto_aead/asconaead128/ref/printstate.c
 )
 
 target_include_directories(
     bioentropy_core
     PUBLIC
         ${PROJECT_SOURCE_DIR}/include
+    PRIVATE
+        ${PROJECT_SOURCE_DIR}/src/conditioning
+        ${PROJECT_SOURCE_DIR}/third_party/ascon-c/crypto_hash/asconxof128/ref
+        ${PROJECT_SOURCE_DIR}/third_party/ascon-c/crypto_aead/asconaead128/ref
+        ${PROJECT_SOURCE_DIR}/third_party/ascon-c/tests
 )
 
 target_link_libraries(
@@ -41,6 +59,7 @@ target_link_libraries(
     PUBLIC
         OpenSSL::Crypto
         yaml-cpp
+        PkgConfig::MPFR
 )
 
 add_executable(
@@ -189,4 +208,220 @@ target_link_libraries(
 add_test(
     NAME serial-bitstream-metrics-test
     COMMAND serial-bitstream-metrics-test
+)
+
+
+add_executable(
+    ascon-xof128-conditioner-test
+    tests/test_ascon_xof128_conditioner.cpp
+    third_party/ascon-c/crypto_hash/asconxof128/ref/hash.c
+    third_party/ascon-c/crypto_hash/asconxof128/ref/printstate.c
+)
+
+target_include_directories(
+    ascon-xof128-conditioner-test
+    PRIVATE
+        ${PROJECT_SOURCE_DIR}/third_party/ascon-c/crypto_hash/asconxof128/ref
+        ${PROJECT_SOURCE_DIR}/third_party/ascon-c/tests
+)
+
+target_link_libraries(
+    ascon-xof128-conditioner-test
+    PRIVATE
+        bioentropy_core
+)
+
+add_test(
+    NAME ascon-xof128-conditioner-test
+    COMMAND ascon-xof128-conditioner-test
+)
+
+
+add_executable(
+    experiment-config-conditioning-test
+    tests/test_experiment_config_conditioning.cpp
+)
+
+target_link_libraries(
+    experiment-config-conditioning-test
+    PRIVATE
+        bioentropy_core
+)
+
+add_test(
+    NAME experiment-config-conditioning-test
+    COMMAND experiment-config-conditioning-test
+)
+
+
+add_executable(
+    ascon-aead128-test
+    tests/test_ascon_aead128.cpp
+)
+
+target_link_libraries(
+    ascon-aead128-test
+    PRIVATE
+        bioentropy_core
+)
+
+add_test(
+    NAME ascon-aead128-test
+    COMMAND ascon-aead128-test
+)
+
+
+add_executable(
+    ascon-aead128-benchmark
+    src/benchmark/benchmark_ascon_aead128.cpp
+)
+
+target_link_libraries(
+    ascon-aead128-benchmark
+    PRIVATE
+        bioentropy_core
+)
+
+
+add_executable(
+    ascon-aead128-avalanche
+    src/benchmark/benchmark_ascon_aead128_avalanche.cpp
+)
+
+target_link_libraries(
+    ascon-aead128-avalanche
+    PRIVATE
+        bioentropy_core
+)
+
+
+add_executable(
+    fetteha-dna-cipher-2023-test
+    tests/test_fetteha_dna_cipher_2023.cpp
+)
+
+target_link_libraries(
+    fetteha-dna-cipher-2023-test
+    PRIVATE
+        bioentropy_core
+)
+
+add_test(
+    NAME fetteha-dna-cipher-2023-test
+    COMMAND fetteha-dna-cipher-2023-test
+)
+
+add_executable(
+    fetteha-synthetic-probe
+    src/benchmark/benchmark_fetteha_synthetic.cpp
+)
+
+target_link_libraries(
+    fetteha-synthetic-probe
+    PRIVATE
+        bioentropy_core
+)
+
+add_executable(
+    fetteha-p-confounding
+    src/benchmark/benchmark_fetteha_p_confounding.cpp
+)
+
+target_link_libraries(
+    fetteha-p-confounding
+    PRIVATE
+        bioentropy_core
+)
+
+
+add_executable(
+    fetteha-p-matched-control
+    src/benchmark/benchmark_fetteha_p_matched_control.cpp
+)
+
+target_link_libraries(
+    fetteha-p-matched-control
+    PRIVATE
+        bioentropy_core
+)
+
+
+add_executable(
+    fetteha-p-performance
+    src/benchmark/benchmark_fetteha_p_performance.cpp
+)
+
+target_link_libraries(
+    fetteha-p-performance
+    PRIVATE
+        bioentropy_core
+)
+
+
+add_executable(
+    ascon-vs-fetteha-benchmark
+    src/benchmark/benchmark_ascon_vs_fetteha.cpp
+)
+
+target_link_libraries(
+    ascon-vs-fetteha-benchmark
+    PRIVATE
+        bioentropy_core
+)
+
+add_executable(
+    brent-cycle-detection-test
+    tests/test_brent_cycle_detection.cpp
+)
+
+target_link_libraries(
+    brent-cycle-detection-test
+    PRIVATE
+        bioentropy_core
+)
+
+add_test(
+    NAME brent-cycle-detection-test
+    COMMAND brent-cycle-detection-test
+)
+
+add_executable(
+    logistic-periodicity-probe
+    src/benchmark/benchmark_logistic_periodicity.cpp
+)
+
+target_link_libraries(
+    logistic-periodicity-probe
+    PRIVATE
+        bioentropy_core
+        PkgConfig::MPFR
+        yaml-cpp
+)
+
+add_executable(
+    chen-4d-dcs-source-test
+    tests/test_chen_4d_dcs_source.cpp
+)
+
+target_link_libraries(
+    chen-4d-dcs-source-test
+    PRIVATE
+        bioentropy_core
+)
+
+add_test(
+    NAME chen-4d-dcs-source-test
+    COMMAND chen-4d-dcs-source-test
+)
+
+
+add_executable(
+    chen-4d-dcs-periodicity-probe
+    src/benchmark/benchmark_chen_4d_dcs_periodicity.cpp
+)
+
+target_link_libraries(
+    chen-4d-dcs-periodicity-probe
+    PRIVATE
+        bioentropy_core
 )

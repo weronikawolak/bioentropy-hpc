@@ -5,6 +5,7 @@
 #include "bioentropy/sources/RandomnessSource.hpp"
 
 #include <cstdint>
+#include <memory>
 #include <span>
 #include <string_view>
 
@@ -16,6 +17,8 @@ public:
         LogisticMapConfig config,
         Seed256 seed
     );
+
+    ~LogisticMapSource() override;
 
     std::string_view name() const noexcept override;
 
@@ -30,11 +33,16 @@ public:
     double initial_state() const noexcept;
 
 private:
+    struct MpfrState;
+
     LogisticMapConfig config_;
     Seed256 seed_;
 
     double initial_state_{};
     double state_{};
+
+    std::unique_ptr<MpfrState>
+        mpfr_state_;
 
     static double derive_initial_state(
         const Seed256& seed

@@ -44,9 +44,127 @@ std::string logistic_extraction_to_string(
     );
 }
 
+std::string conditioning_mode_to_string(
+    ConditioningMode mode
+) {
+    switch (mode) {
+        case ConditioningMode::Raw:
+            return "raw";
+
+        case ConditioningMode::AsconXof128:
+            return "ascon_xof128";
+    }
+
+    throw std::invalid_argument(
+        "unknown conditioning mode"
+    );
+}
+
+nlohmann::json conditioning_to_json(
+    const ExperimentResult& result
+) {
+    nlohmann::json document = {
+        {
+            "mode",
+            conditioning_mode_to_string(
+                result.conditioning_config.mode
+            )
+        },
+        {
+            "input_bits",
+            result.output_bits
+        },
+        {
+            "output_bits",
+            result.output_bits
+        }
+    };
+
+    if (
+        result.pre_conditioning_sha256
+            .has_value()
+    ) {
+        document["input_sha256"] =
+            *result.pre_conditioning_sha256;
+    }
+
+    return document;
+}
+
 nlohmann::json source_parameters_to_json(
     const SourceConfig& source
 ) {
+    if (source.type == "chen_4d_dcs") {
+        const auto* config =
+            std::get_if<Chen4DDcsConfig>(
+                &source.parameters
+            );
+
+        if (config == nullptr) {
+            throw std::invalid_argument(
+                "invalid Chen 4D-DCS "
+                "source configuration"
+            );
+        }
+
+        return {
+            {
+                "r",
+                config->r
+            },
+            {
+                "arithmetic",
+                "float64"
+            },
+            {
+                "burn_in",
+                config->burn_in
+            },
+            {
+                "extraction",
+                "threshold_per_coordinate"
+            },
+            {
+                "threshold",
+                config->threshold
+            },
+            {
+                "output_order",
+                {
+                    "x",
+                    "y",
+                    "z",
+                    "w"
+                }
+            },
+            {
+                "bits_per_iteration",
+                4
+            },
+            {
+                "initial_state",
+                {
+                    {
+                        "x0",
+                        config->x0
+                    },
+                    {
+                        "y0",
+                        config->y0
+                    },
+                    {
+                        "z0",
+                        config->z0
+                    },
+                    {
+                        "w0",
+                        config->w0
+                    }
+                }
+            }
+        };
+    }
+
     if (source.type == "logistic") {
         const auto* config =
             std::get_if<LogisticMapConfig>(
@@ -77,6 +195,28 @@ nlohmann::json source_parameters_to_json(
             {
                 "r",
                 config->r
+            },
+            {
+                "arithmetic",
+                {
+                    {
+                        "mode",
+                        config->arithmetic_mode ==
+                                LogisticArithmeticMode::Float32
+                            ? "float32"
+                            : (
+                                config->arithmetic_mode ==
+                                    LogisticArithmeticMode::FixedQ3_29
+                                ? "fixed_q3_29"
+                                : (
+                                    config->arithmetic_mode ==
+                                        LogisticArithmeticMode::Mpfr256
+                                    ? "mpfr_256"
+                                    : "float64"
+                                )
+                            )
+                    }
+                }
             },
             {
                 "burn_in",
@@ -263,7 +403,17 @@ ResultWriter::write_json(
         << "_rep"
         << std::setw(4)
         << std::setfill('0')
-        << result.replicate_id
+        << result.replicate_id;
+
+    if (
+        result.conditioning_config.mode ==
+        ConditioningMode::AsconXof128
+    ) {
+        filename
+            << "_ascon-xof128";
+    }
+
+    filename
         << ".json";
 
     const std::filesystem::path output_path =
@@ -306,6 +456,10 @@ ResultWriter::write_json(
                     )
                 }
             }
+        },
+        {
+            "conditioning",
+            conditioning_to_json(result)
         },
         {
             "execution",

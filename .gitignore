@@ -46,3 +46,9 @@ slurm-*.out
 slurm-*.err
 /tools/
 /configs/generated/
+
+# Local research notes
+docs/local/
+
+# Generated experiment results
+results/
