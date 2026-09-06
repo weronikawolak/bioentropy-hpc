@@ -4979,3 +4979,23 @@ Both figures are generated reproducibly by
 
 The plotting environment is recorded in
 `requirements-analysis.txt`.
+
+### Conditioning result figures
+
+Publication-oriented figures were generated from the frozen
+paired RAW-versus-Ascon aggregate results.
+
+The figure set currently contains:
+
+- `raw_vs_ascon_failed_replicates`: replicate-level FAILED
+  counts for all ten source groups before and after
+  Ascon-XOF128 conditioning.
+- `float64_collapsed_conditioning`: family-level outcomes for
+  the five frozen Logistic float64 trajectories that underwent
+  exact finite-precision collapse.
+
+The figures are generated reproducibly by
+`analysis/scripts/plot_conditioning_results.py`.
+
+The Python plotting dependencies are recorded in
+`requirements-analysis.txt`.
