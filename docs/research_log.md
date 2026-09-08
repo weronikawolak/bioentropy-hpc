@@ -4999,3 +4999,100 @@ The figures are generated reproducibly by
 
 The Python plotting dependencies are recorded in
 `requirements-analysis.txt`.
+
+
+## 2026-09-08 — NIST SP 800-90B windowed float64 collapse validation
+
+### NIST SP 800-90B integration
+
+Integrated the official NIST SP 800-90B EntropyAssessment
+tool at tag `v1.1.8` as a Git submodule. The upstream
+self-test passed with numerical deltas far below `1e-6`.
+
+A preprocessing adapter was added to convert the project's
+MSB-first packed bitstreams into the one-byte-per-binary-symbol
+format expected by `ea_non_iid`.
+
+All generated RAW streams are checked against the SHA-256
+recorded for the frozen Dieharder campaign before entropy
+assessment.
+
+### 1M-prefix float64 screening
+
+All 20 frozen `logistic-float64` realizations were assessed
+using the first 1,000,000 output bits.
+
+All 20 regenerated RAW streams passed provenance validation.
+
+Observed `H_original` range:
+
+- minimum: 0.822919
+- maximum: 0.889318
+- mean: 0.854196
+
+For the five realizations known to collapse later
+(reps 001, 005, 007, 008, 012), mean prefix
+`H_original` was approximately 0.844889.
+
+For the remaining 15 realizations, mean prefix
+`H_original` was approximately 0.857298.
+
+The two groups overlap strongly at the 1M prefix. Therefore,
+early local entropy estimates do not reliably identify the
+later finite-precision collapse.
+
+### Windowed analysis — float64 rep001
+
+Frozen realization:
+
+- replicate: `rep001`
+- explicit x0: `0.14571965014107383`
+- RAW SHA-256:
+  `9d83f5dcc113c2ab47df859ba00b964cfcb8b8705b9673b9198e3e925c87c763`
+- exact collapse index: 5,919,555
+
+The last observed `1` in the generated output bitstream is at
+index 5,919,554. From bit 5,919,555 onward the output is exactly
+zero. This agrees exactly with the independently determined
+collapse reference; measured index difference = 0.
+
+NIST SP 800-90B non-IID estimates for consecutive 1M-bit
+windows:
+
+| Window | P(1) | H_original |
+|---|---:|---:|
+| 0–1M | 0.500879 | 0.823339 |
+| 1–2M | 0.500000 | 0.866904 |
+| 2–3M | 0.499581 | 0.843698 |
+| 3–4M | 0.499611 | 0.865989 |
+| 4–5M | 0.499994 | 0.840139 |
+| 5–6M | 0.459056 | 0.000062 |
+| 6–7M | 0.000000 | 0.000000 |
+| 7–8M | 0.000000 | 0.000000 |
+
+The 5–6M window contains the exact collapse and its NIST
+non-IID estimate falls to `0.000062`.
+
+For the post-collapse constant windows, `ea_non_iid` terminates
+with exit code 255 and reports:
+
+`Symbol alphabet consists of 1 symbol. No entropy awarded...`
+
+These windows are therefore stored as
+`assessment_status=degenerate_constant`, with empirical
+min-entropy `0.0`. The value is not represented as a numerical
+estimate returned by `ea_non_iid`; its provenance is explicitly
+recorded as `empirical_constant_distribution`.
+
+### Interpretation
+
+This result demonstrates a trajectory-length-dependent
+finite-precision failure. A float64 logistic-map realization can
+show high local statistical quality and substantial empirical
+non-IID min-entropy for several million output bits, followed by
+an abrupt transition to a deterministic absorbing state.
+
+The NIST values are treated as empirical sequence entropy
+estimates only. They do not establish that the deterministic
+logistic map is a compliant NIST entropy source and do not imply
+cryptographic unpredictability.
