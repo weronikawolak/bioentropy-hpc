@@ -114,11 +114,23 @@ def main() -> None:
 
     parser.add_argument(
         "--stop",
-        required=True,
         type=int,
+        default=None,
         help=(
             "Exclusive start-position limit "
-            "for generated windows."
+            "for regularly spaced windows."
+        ),
+    )
+
+    parser.add_argument(
+        "--window-starts",
+        nargs="+",
+        type=int,
+        default=None,
+        help=(
+            "Explicit zero-based window starts. "
+            "When supplied, --start/--stop/--step "
+            "are ignored."
         ),
     )
 
@@ -142,14 +154,28 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    if args.start < 0:
-        parser.error("--start must be non-negative")
+    if args.window_starts is not None:
+        if any(start < 0 for start in args.window_starts):
+            parser.error(
+                "--window-starts must be non-negative"
+            )
+    else:
+        if args.start < 0:
+            parser.error("--start must be non-negative")
 
-    if args.stop <= args.start:
-        parser.error("--stop must be greater than --start")
+        if args.stop is None:
+            parser.error(
+                "--stop is required unless "
+                "--window-starts is supplied"
+            )
 
-    if args.step <= 0:
-        parser.error("--step must be positive")
+        if args.stop <= args.start:
+            parser.error(
+                "--stop must be greater than --start"
+            )
+
+        if args.step <= 0:
+            parser.error("--step must be positive")
 
     if args.window_samples < 1_000_000:
         parser.error(
@@ -200,13 +226,18 @@ def main() -> None:
             )
         )
 
-    starts = list(
-        range(
-            args.start,
-            args.stop,
-            args.step,
+    if args.window_starts is not None:
+        starts = sorted(
+            set(args.window_starts)
         )
-    )
+    else:
+        starts = list(
+            range(
+                args.start,
+                args.stop,
+                args.step,
+            )
+        )
 
     print(
         f"Source       : {source}"

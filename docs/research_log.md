@@ -5096,3 +5096,37 @@ The NIST values are treated as empirical sequence entropy
 estimates only. They do not establish that the deterministic
 logistic map is a compliant NIST entropy source and do not imply
 cryptographic unpredictability.
+
+## 2026-09-08 — Five-replicate float64 NIST 90B collapse campaign
+
+Windowed NIST SP 800-90B non-IID assessment was completed for all five frozen float64 realizations with independently identified exact finite-precision collapse points.
+
+All regenerated RAW streams passed SHA-256 provenance validation against the frozen Dieharder campaign.
+
+| Replicate | Collapse index | Collapse window | P(1) | H_original | Status |
+|---|---:|---|---:|---:|---|
+| rep001 | 5,919,555 | 5,000,000–6,000,000 | 0.459056 | 0.00006200 | nist_estimated |
+| rep005 | 16,181,612 | 16,000,000–17,000,000 | 0.091052 | 0.00000000 | nist_estimated |
+| rep007 | 21,156,926 | 21,000,000–22,000,000 | 0.078795 | 0.00000000 | nist_estimated |
+| rep008 | 10,996,001 | 10,000,000–11,000,000 | 0.498449 | 0.00295700 | nist_estimated |
+| rep012 | 9,423,224 | 9,000,000–10,000,000 | 0.211820 | 0.00000000 | nist_estimated |
+
+Mean `H_original` across the five collapse-containing windows: `0.00060380`.
+
+Immediately preceding full 1M-bit windows still showed high empirical non-IID min-entropy, approximately `0.84–0.88` bits/bit.
+
+The collapse-containing windows therefore show an abrupt loss of empirical min-entropy rather than a gradual degradation visible from the beginning of the sequence.
+
+For rep001, the independently detected collapse index `5,919,555` equals the first permanently zero output-bit index exactly.
+
+Post-collapse one-symbol windows cause `ea_non_iid` to report `No entropy awarded`. They are represented as `assessment_status=degenerate_constant` with empirical min-entropy `0.0`, while remaining explicitly distinct from numerical estimates returned by NIST.
+
+The parser also normalizes the textual NIST output `-0.000000` to numerical positive zero while retaining the original `ea_non_iid.txt` output for provenance.
+
+These results provide repeatable evidence of a trajectory-length-dependent finite-precision failure mechanism in 5 of the 20 pre-specified deterministic float64 logistic-map realizations.
+
+The NIST SP 800-90B results are interpreted strictly as empirical sequence entropy estimates. They do not make the deterministic logistic map a compliant entropy source and do not establish cryptographic unpredictability.
+
+Combined table:
+
+`results/aggregated/nist90b_logistic-float64_collapsed_windows.tsv`

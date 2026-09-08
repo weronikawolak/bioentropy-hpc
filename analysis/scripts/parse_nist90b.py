@@ -6,8 +6,18 @@ import re
 from pathlib import Path
 
 
+NUMBER_PATTERN = (
+    r"[+-]?"
+    r"(?:"
+    r"\d+(?:\.\d*)?"
+    r"|"
+    r"\.\d+"
+    r")"
+    r"(?:[eE][+-]?\d+)?"
+)
+
 H_ORIGINAL_RE = re.compile(
-    r"^\s*H_original:\s*([0-9]+(?:\.[0-9]+)?)\s*$",
+    rf"^\s*H_original:\s*({NUMBER_PATTERN})\s*$",
     re.MULTILINE,
 )
 
@@ -21,6 +31,12 @@ def parse_output(text: str) -> dict:
         )
 
     h_original = float(match.group(1))
+
+    # Normalize IEEE-754 negative zero returned by ea_non_iid
+    # for near-degenerate datasets. Preserve the raw NIST
+    # output separately; normalized values are used in JSON/TSV.
+    if h_original == 0.0:
+        h_original = 0.0
 
     if not 0.0 <= h_original <= 1.0:
         raise ValueError(
