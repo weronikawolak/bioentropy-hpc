@@ -59,6 +59,7 @@ def convert(
     input_path: Path,
     output_path: Path,
     max_samples: int | None,
+    start_sample: int = 0,
 ) -> dict:
     if not input_path.is_file():
         raise FileNotFoundError(input_path)
@@ -69,10 +70,22 @@ def convert(
     total_input_bytes = input_path.stat().st_size
     total_available_samples = total_input_bytes * 8
 
+    if start_sample < 0:
+        raise ValueError("--start-sample must be non-negative.")
+
+    if start_sample >= total_available_samples:
+        raise ValueError(
+            "--start-sample is outside the input stream."
+        )
+
     if max_samples is not None and max_samples <= 0:
         raise ValueError("--max-samples must be positive.")
 
-    target_samples = total_available_samples
+    available_from_start = (
+        total_available_samples - start_sample
+    )
+
+    target_samples = available_from_start
 
     if max_samples is not None:
         target_samples = min(
@@ -93,6 +106,13 @@ def convert(
     with input_path.open("rb") as src, \
             output_path.open("wb") as dst:
 
+        byte_offset = start_sample // 8
+        initial_bit_offset = start_sample % 8
+
+        src.seek(byte_offset)
+
+        first_chunk = True
+
         while samples < target_samples:
             remaining_samples = (
                 target_samples - samples
@@ -109,10 +129,18 @@ def convert(
             if not chunk:
                 break
 
-            expanded = unpack_msb_first(
-                chunk,
-                remaining_samples,
-            )
+            expanded = unpack_msb_first(chunk)
+
+            if first_chunk and initial_bit_offset:
+                expanded = expanded[
+                    initial_bit_offset:
+                ]
+
+            first_chunk = False
+
+            expanded = expanded[
+                :remaining_samples
+            ]
 
             dst.write(expanded)
             output_sha.update(expanded)
@@ -136,8 +164,15 @@ def convert(
         "input_bytes": total_input_bytes,
         "available_input_bits": total_available_samples,
         "output_samples": samples,
+        "start_sample": start_sample,
+        "end_sample_exclusive": (
+            start_sample + samples
+        ),
         "max_samples": max_samples,
-        "truncated": samples < total_available_samples,
+        "truncated": (
+            start_sample != 0
+            or samples < total_available_samples
+        ),
         "zeros": zeros,
         "ones": ones,
         "p1": ones / samples if samples else None,
@@ -187,6 +222,16 @@ def main() -> None:
         type=int,
         default=None,
     )
+
+    parser.add_argument(
+        "--start-sample",
+        type=int,
+        default=0,
+        help=(
+            "Zero-based bit/sample offset in the "
+            "packed MSB-first input stream."
+        ),
+    )
     parser.add_argument(
         "--self-test",
         action="store_true",
@@ -208,6 +253,7 @@ def main() -> None:
         args.input,
         args.output,
         args.max_samples,
+        args.start_sample,
     )
 
     print(
