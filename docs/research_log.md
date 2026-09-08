@@ -5130,3 +5130,48 @@ The NIST SP 800-90B results are interpreted strictly as empirical sequence entro
 Combined table:
 
 `results/aggregated/nist90b_logistic-float64_collapsed_windows.tsv`
+
+
+### Collapse-aligned NIST 90B figure
+
+A collapse-aligned visualization was generated for all five
+pre-specified float64 realizations that reach the exact
+finite-precision absorbing state.
+
+For each 1M-bit window, the plotted x-coordinate is the window
+midpoint relative to the independently determined exact collapse
+index:
+
+`relative_position = window_midpoint - collapse_index`.
+
+Therefore `x = 0` represents the exact finite-precision collapse
+for every realization despite their different absolute collapse
+positions.
+
+Descriptive aggregate values across the five realizations:
+
+- mean `H_original` in the last complete pre-collapse window:
+  `0.85626900` bits/bit;
+- mean `H_original` in the collapse-containing window:
+  `0.00060380` bits/bit;
+- mean absolute decrease:
+  `0.85566520` bits/bit.
+
+The result is descriptive for the five collapsed members of the
+20 pre-specified deterministic float64 realization set. It is not
+an estimate of the probability that an arbitrary float64 initial
+condition will collapse.
+
+Figure outputs:
+
+- `results/figures/nist90b_float64_collapse_aligned.png`
+- `results/figures/nist90b_float64_collapse_aligned.pdf`
+
+Machine-readable summaries:
+
+- `results/aggregated/nist90b_logistic-float64_collapsed_windows.tsv`
+- `results/aggregated/nist90b_logistic-float64_collapse_summary.tsv`
+
+Post-collapse one-symbol windows remain explicitly distinguished
+from NIST numerical estimates using
+`assessment_status=degenerate_constant`.
