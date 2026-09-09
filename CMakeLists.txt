@@ -38,6 +38,7 @@ add_library(
     src/conditioning/AsconXof128Conditioner.cpp
     src/conditioning/ascon_xof128_variable.c
     src/crypto/AsconAead128.cpp
+    src/crypto/ChaCha20Poly1305.cpp
     src/crypto/FettehaDnaCipher2023.cpp
     third_party/ascon-c/crypto_aead/asconaead128/ref/aead.c
     third_party/ascon-c/crypto_aead/asconaead128/ref/printstate.c
@@ -270,6 +271,24 @@ add_test(
     COMMAND ascon-aead128-test
 )
 
+
+
+
+add_executable(
+    chacha20-poly1305-test
+    tests/test_chacha20_poly1305.cpp
+)
+
+target_link_libraries(
+    chacha20-poly1305-test
+    PRIVATE
+        bioentropy_core
+)
+
+add_test(
+    NAME chacha20-poly1305-test
+    COMMAND chacha20-poly1305-test
+)
 
 add_executable(
     ascon-aead128-benchmark

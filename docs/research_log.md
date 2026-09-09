@@ -5286,3 +5286,43 @@ Figures:
 
 - `results/figures/nist90b_dna_corpora.png`
 - `results/figures/nist90b_dna_corpora.pdf`
+
+## 2026-09-09 — ChaCha20-Poly1305 AEAD baseline
+
+Added a ChaCha20-Poly1305 AEAD wrapper using the existing OpenSSL
+EVP dependency.
+
+The interface intentionally mirrors the existing Ascon-AEAD128
+wrapper:
+
+`encrypt(plaintext, associated_data, key, nonce)`
+
+returns the ciphertext followed by the authentication tag, while
+
+`decrypt(ciphertext_and_tag, associated_data, key, nonce)`
+
+returns the recovered plaintext only after successful
+authentication.
+
+Parameters:
+
+- key: 256 bits;
+- nonce: 96 bits;
+- authentication tag: 128 bits.
+
+Validation covers empty and non-empty plaintexts, round-trip
+correctness, deterministic output for identical complete inputs,
+ciphertext modification, authentication-tag modification,
+associated-data modification, incorrect keys, and malformed
+ciphertexts shorter than the authentication tag.
+
+The existing `ChaCha20ReferenceSource` remains a separate component:
+it is a deterministic reference bitstream generator used in source
+quality experiments. `ChaCha20Poly1305` is instead an authenticated
+encryption baseline for the downstream cryptographic integration
+campaign.
+
+No claim about source entropy is inferred from successful AEAD
+operation. The next integration stage evaluates how frozen RAW and
+conditioned source material propagates into derived keys/nonces and
+subsequent AEAD use.
