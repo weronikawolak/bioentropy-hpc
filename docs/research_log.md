@@ -5238,3 +5238,51 @@ The figure is descriptive of the frozen experimental realization
 set. In particular, high empirical `H_original` for a
 deterministic generator such as ChaCha20 must not be interpreted
 as evidence of fresh physical entropy.
+
+## 2026-09-09 — DNA NIST SP 800-90B campaign
+
+Completed a NIST SP 800-90B non-IID empirical entropy assessment for the frozen genomic DNA corpus.
+
+The existing DNA dataset contains 50 pre-specified genomic windows across five corpora, with 10 windows per corpus. Each window contains 400,000 nucleotides and produces 800,000 encoded bits under the frozen `acgt_2bit` mapping `A=00,C=01,G=10,T=11`.
+
+Because an individual frozen window contains fewer than the 1,000,000 samples required by the assessment tool, windows were paired deterministically within each corpus:
+
+- w00 + w01;
+- w02 + w03;
+- w04 + w05;
+- w06 + w07;
+- w08 + w09.
+
+This produces 25 frozen DNA assessment units: five pairs per corpus, each containing 1,600,000 encoded binary samples.
+
+Pairing scheme:
+
+`BIOENTROPY-HPC-DNA-NIST90B-PAIRING-v1`
+
+For every pair, both constituent bitstreams were regenerated from their frozen reference configs and independently checked against the previously recorded RAW SHA-256 values before concatenation.
+
+| Corpus | Pairs | H min | H mean | H median | H max | H SD | mean P(1) |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| arabidopsis | 5 | 0.00195300 | 0.06668700 | 0.05356800 | 0.17534700 | 0.06470177 | 0.49961512 |
+| bacillus_168 | 5 | 0.00633000 | 0.18786800 | 0.08717300 | 0.45257500 | 0.19037013 | 0.50007537 |
+| celegans | 5 | 0.00541500 | 0.02216180 | 0.01035100 | 0.04686100 | 0.02015057 | 0.49921187 |
+| ecoli_k12 | 5 | 0.00580200 | 0.02386620 | 0.01423700 | 0.07568600 | 0.02919051 | 0.49979137 |
+| yeast_s288c | 5 | 0.00180800 | 0.01756620 | 0.00980400 | 0.04974500 | 0.01964253 | 0.50075713 |
+
+Replication semantics differ deliberately from the synthetic generator campaign: the DNA assessment unit is a deterministic pair of pre-specified genomic windows rather than a different pseudorandom seed.
+
+The concatenation boundary is an analysis construction required to reach the NIST assessment sample size; it is not interpreted as a biologically contiguous sequence unless the underlying manifest establishes such contiguity.
+
+These SP 800-90B values are empirical assessments of the encoded sequence. They do not establish that genomic DNA is a physical entropy source, a compliant NIST entropy source, or a cryptographically unpredictable key source.
+
+Machine-readable artifacts:
+
+- `datasets/manifests/dna_nist90b_pairs.jsonl`
+- `datasets/manifests/dna_nist90b_pairs.tsv`
+- `results/aggregated/nist90b_dna_pairs.tsv`
+- `results/aggregated/nist90b_dna_corpus_summary.tsv`
+
+Figures:
+
+- `results/figures/nist90b_dna_corpora.png`
+- `results/figures/nist90b_dna_corpora.pdf`
