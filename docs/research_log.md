@@ -5175,3 +5175,66 @@ Machine-readable summaries:
 Post-collapse one-symbol windows remain explicitly distinguished
 from NIST numerical estimates using
 `assessment_status=degenerate_constant`.
+
+## 2026-09-09 — NIST SP 800-90B 10-source prefix campaign
+
+Completed NIST SP 800-90B non-IID initial entropy screening for the full frozen 10-source campaign.
+
+Protocol:
+
+- 10 source groups;
+- 20 frozen realizations per source;
+- 1,000,000 sequential output bits per realization;
+- binary samples represented as one byte per bit;
+- MSB-first unpacking matching the framework bitstream semantics;
+- `ea_non_iid -i` with `bits_per_symbol=1`;
+- SHA-256 provenance checked against the frozen RAW campaign.
+
+All 200 regenerated RAW realizations passed provenance validation.
+
+| Source | n | H min | H mean | H median | H max | H SD | mean P(1) |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| logistic-float32 | 20 | 0.00000000 | 0.00000170 | 0.00000200 | 0.00000200 | 0.00000073 | 0.47133510 |
+| logistic-float64 | 20 | 0.82291900 | 0.85419560 | 0.84896500 | 0.88931800 | 0.02442606 | 0.50001335 |
+| logistic-fixed_q3_29 | 20 | 0.00000200 | 0.00000230 | 0.00000200 | 0.00000300 | 0.00000047 | 0.50566665 |
+| logistic-mpfr_256 | 20 | 0.81390700 | 0.85076925 | 0.84418900 | 0.91249600 | 0.02943400 | 0.49992130 |
+| chen-4d-dcs | 20 | 0.81732300 | 0.85573385 | 0.85696800 | 0.88291200 | 0.01649438 | 0.49957485 |
+| rule30-cells256 | 20 | 0.67989500 | 0.83901885 | 0.84049400 | 0.94333400 | 0.05192448 | 0.49999530 |
+| rule30-cells1024 | 20 | 0.81262800 | 0.85908580 | 0.85358700 | 0.91687100 | 0.03434355 | 0.49996915 |
+| rule90-cells256 | 20 | 0.00000000 | 0.00000000 | 0.00000000 | 0.00000000 | 0.00000000 | 0.01623620 |
+| rule90-cells1024 | 20 | 0.00000000 | 0.00000000 | 0.00000000 | 0.00000000 | 0.00000000 | 0.26150750 |
+| chacha20 | 20 | 0.80916500 | 0.84912370 | 0.84516700 | 0.90117300 | 0.02159738 | 0.50009170 |
+
+Key observations:
+
+- `logistic-float32` has essentially zero empirical non-IID min-entropy despite a much less extreme mean bit balance than the Rule90 cases.
+- `logistic-fixed_q3_29` is especially important: mean `P(1)` is close to 0.5 while `H_original` remains near zero. Bit balance alone therefore does not capture the strong sequential predictability detected by the non-IID estimators.
+- both Rule90 configurations have `H_original = 0` across all 20 frozen realizations.
+- float64, MPFR-256, Chen-4D, Rule30 and ChaCha20 form a high empirical-entropy group on the 1M-bit prefix, with mean `H_original` approximately 0.84–0.86 bits/bit.
+- Rule30-256 shows the largest spread within that high group, including a minimum near 0.68.
+
+These values are empirical sequence estimates produced by the SP 800-90B non-IID assessment methodology. They do not establish that deterministic chaos, cellular automata, or ChaCha20 are entropy sources, and they do not imply formal NIST entropy-source compliance or cryptographic secrecy.
+
+The prefix experiment also does not capture late finite-precision collapse in float64 realizations; that phenomenon is analyzed separately using collapse-aligned windowed assessments.
+
+Machine-readable outputs:
+
+- `results/aggregated/nist90b_prefix1m_all_sources.tsv`
+- `results/aggregated/nist90b_prefix1m_source_summary.tsv`
+
+### NIST 90B source-comparison figure
+
+Generated a publication-oriented comparison of the 10 frozen
+source groups using the mean 1M-prefix `H_original` across
+20 realizations per source. Error bars span the observed
+minimum-to-maximum replicate range.
+
+Figure outputs:
+
+- `results/figures/nist90b_prefix1m_sources.png`
+- `results/figures/nist90b_prefix1m_sources.pdf`
+
+The figure is descriptive of the frozen experimental realization
+set. In particular, high empirical `H_original` for a
+deterministic generator such as ChaCha20 must not be interpreted
+as evidence of fresh physical entropy.
