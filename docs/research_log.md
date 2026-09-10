@@ -5464,3 +5464,62 @@ Artifacts:
 - `results/aggregated/integrated_source_quality.tsv`
 - `results/figures/integrated_source_quality.png`
 - `results/figures/integrated_source_quality.pdf`
+
+## 2026-09-10 — Three-AEAD source-derived key-material campaign
+
+Extended the frozen source-derived key-material experiment to
+three authenticated-encryption baselines while preserving the
+previous 76-byte protocol as a separate frozen experiment.
+
+The new protocol is identified as `AEAD3-v1` and uses 104 bytes
+from each evaluated stream:
+
+- bytes 0-15: Ascon-AEAD128 key;
+- bytes 16-31: Ascon-AEAD128 nonce;
+- bytes 32-63: ChaCha20-Poly1305 key;
+- bytes 64-75: ChaCha20-Poly1305 nonce;
+- bytes 76-91: AES-128-GCM key;
+- bytes 92-103: AES-128-GCM nonce.
+
+The same fixed deterministic 4096-byte plaintext and 32-byte
+associated-data record are used for all three AEADs. The protocol
+is a controlled propagation experiment and is not deployment
+guidance for nonce management or cryptographic key generation.
+
+The campaign contains 10 frozen source groups, 20 realizations per
+group, and two evaluated modes (RAW and full-stream Ascon-XOF128),
+for 400 total records.
+
+All 400 records passed source-stream provenance verification and
+successful authenticated round-trip for Ascon-AEAD128,
+ChaCha20-Poly1305 and AES-128-GCM.
+
+Across the 20 source/mode groups:
+
+- total 104-byte material collisions: 0;
+- total Ascon key collisions: 0;
+- total ChaCha20-Poly1305 key collisions: 0;
+- total AES-128-GCM key collisions: 1.
+
+The absence of observed collisions among only 20 realizations per
+group is not interpreted as evidence of high source entropy,
+unpredictability or cryptographic security. This is particularly
+important because previous NIST SP 800-90B experiments identified
+sources with extremely low empirical non-IID min-entropy estimates
+despite distinct short prefix-derived materials.
+
+Likewise, ciphertext uniqueness under fixed plaintext and AAD is
+not used as a cipher-security metric. Identical ciphertexts in the
+targeted collapse experiment would reflect propagation of
+identical experimental key/nonce material rather than a weakness
+of the underlying AEAD.
+
+For the full-stream Ascon-XOF128 mode, the evaluated prefix is the
+prefix of the XOF output computed from the complete RAW stream.
+It must therefore not be interpreted as local conditioning of only
+the first 104 RAW bytes.
+
+Artifacts:
+
+- `results/aggregated/source_key_material_aead3_campaign.tsv`
+- `results/aggregated/source_key_material_aead3_summary.tsv`

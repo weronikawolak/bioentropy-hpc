@@ -39,6 +39,7 @@ add_library(
     src/conditioning/ascon_xof128_variable.c
     src/crypto/AsconAead128.cpp
     src/crypto/ChaCha20Poly1305.cpp
+    src/crypto/Aes128Gcm.cpp
     src/crypto/FettehaDnaCipher2023.cpp
     third_party/ascon-c/crypto_aead/asconaead128/ref/aead.c
     third_party/ascon-c/crypto_aead/asconaead128/ref/printstate.c
@@ -466,4 +467,34 @@ target_link_libraries(
     ascon-xof128-condition-material
     PRIVATE
         bioentropy_core
+)
+
+
+add_executable(
+    aes128-gcm-test
+    tests/test_aes128_gcm.cpp
+)
+
+target_link_libraries(
+    aes128-gcm-test
+    PRIVATE
+        bioentropy_core
+)
+
+add_test(
+    NAME aes128-gcm-test
+    COMMAND aes128-gcm-test
+)
+
+
+add_executable(
+    source-key-material-probe-aead3
+    src/benchmark/probe_source_key_material_aead3.cpp
+)
+
+target_link_libraries(
+    source-key-material-probe-aead3
+    PRIVATE
+        bioentropy_core
+        OpenSSL::Crypto
 )
