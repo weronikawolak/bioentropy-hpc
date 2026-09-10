@@ -5423,3 +5423,44 @@ Artifacts:
 - `results/aggregated/float64_collapse_conditioned_material.tsv`
 - `results/figures/float64_collapse_conditioning.png`
 - `results/figures/float64_collapse_conditioning.pdf`
+
+## 2026-09-10 — Integrated source-to-crypto evidence
+
+Integrated the frozen source-characterization and downstream key-material results into a single 10-source descriptive comparison.
+
+| Source | NIST H mean | NIST H min | Dieharder FAIL reps | RAW prefix unique | Conditioned prefix unique |
+|---|---:|---:|---:|---:|---:|
+| chacha20 | 0.849124 | 0.809165 | 0/20 | 20/20 | 20/20 |
+| chen-4d-dcs | 0.855734 | 0.817323 | 0/20 | 20/20 | 20/20 |
+| logistic-fixed_q3_29 | 0.000002 | 0.000002 | 20/20 | 20/20 | 20/20 |
+| logistic-float32 | 0.000002 | 0.000000 | 20/20 | 20/20 | 20/20 |
+| logistic-float64 | 0.854196 | 0.822919 | 5/20 | 20/20 | 20/20 |
+| logistic-mpfr_256 | 0.850769 | 0.813907 | 0/20 | 20/20 | 20/20 |
+| rule30-cells1024 | 0.859086 | 0.812628 | 0/20 | 20/20 | 20/20 |
+| rule30-cells256 | 0.839019 | 0.679895 | 20/20 | 20/20 | 20/20 |
+| rule90-cells1024 | 0.000000 | 0.000000 | 20/20 | 20/20 | 20/20 |
+| rule90-cells256 | 0.000000 | 0.000000 | 20/20 | 20/20 | 20/20 |
+
+Interpretation:
+
+- All frozen 76-byte prefix-derived key-material records were distinct across the 20 realizations of every source. Therefore absence of observed short-prefix collisions is not sufficient evidence of high entropy.
+
+- This distinction is especially important for sources whose empirical non-IID NIST SP 800-90B estimates were very low despite distinct prefix-derived material.
+
+- Dieharder replicate outcomes and NIST H_original are different measurements and must not be treated as interchangeable randomness or security scores.
+
+- The NIST values characterize the first 1,000,000 output bits, while the frozen Dieharder campaign evaluates much longer streams. The float64 collapse experiment demonstrates why this window-length distinction matters: a prefix may retain high empirical H before a later deterministic absorbing state occurs.
+
+- Ascon-XOF128 can transform visibly structured material into statistically more balanced output but cannot create entropy or diversity absent from identical inputs.
+
+- Successful Ascon-AEAD128 and ChaCha20-Poly1305 round-trip tests demonstrate implementation correctness only. They do not establish secure key generation.
+
+- ChaCha20 remains a deterministic software reference source in this study; high empirical H for that stream is not interpreted as fresh physical entropy.
+
+The integrated figure is descriptive rather than a formal correlation analysis. Only ten heterogeneous deterministic source groups are compared, and the underlying measurements use different test procedures and observation lengths.
+
+Artifacts:
+
+- `results/aggregated/integrated_source_quality.tsv`
+- `results/figures/integrated_source_quality.png`
+- `results/figures/integrated_source_quality.pdf`
