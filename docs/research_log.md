@@ -5326,3 +5326,100 @@ No claim about source entropy is inferred from successful AEAD
 operation. The next integration stage evaluates how frozen RAW and
 conditioned source material propagates into derived keys/nonces and
 subsequent AEAD use.
+
+## 2026-09-09 — Source-derived AEAD key-material protocol
+
+Defined the downstream key-material layout used to connect the
+frozen source campaign with authenticated-encryption experiments.
+
+Each realization contributes a 76-byte experimental material
+record with non-overlapping fields:
+
+- bytes 0–15: Ascon-AEAD128 key;
+- bytes 16–31: Ascon-AEAD128 nonce;
+- bytes 32–63: ChaCha20-Poly1305 key;
+- bytes 64–75: ChaCha20-Poly1305 nonce.
+
+The separation prevents the same source bytes from being reused
+simultaneously as key material for both cipher baselines.
+
+Both AEAD implementations encrypt the same deterministic 4096-byte
+plaintext with the same deterministic 32-byte associated-data
+payload.
+
+The probe records SHA-256 identifiers for the complete material
+record, keys, nonces and resulting ciphertext-plus-tag values.
+It also records material zero-byte count, byte diversity and bit
+balance, together with authenticated-decryption round-trip status.
+
+A zero-material control is intentionally retained. Successful AEAD
+round-trip with an all-zero key/nonce input demonstrates that
+cryptographic API correctness must not be confused with entropy,
+unpredictability or secure key generation.
+
+The subsequent campaign compares two material paths:
+
+`frozen RAW source -> 76-byte key-material record`
+
+and
+
+`frozen RAW source -> Ascon-XOF128 conditioning -> 76-byte
+key-material record`.
+
+Conditioning is treated as deterministic transformation/whitening.
+It is not interpreted as creating entropy that was absent from the
+input source.
+
+## 2026-09-10 — Float64 post-collapse key-material conditioning
+
+Evaluated the five pre-specified frozen Logistic float64
+realizations previously observed to enter a deterministic
+all-zero absorbing state: rep001, rep005, rep007, rep008 and
+rep012.
+
+For each realization, the 608 bits beginning exactly at the
+previously established collapse index were extracted. All five
+post-collapse RAW records consisted of exactly 76 zero bytes.
+
+The 76-byte zero records were then independently processed with
+Ascon-XOF128 to produce 76-byte conditioned key-material records.
+
+Observed diversity:
+
+- unique post-collapse RAW inputs: 1/5;
+- unique conditioned materials: 1/5;
+- unique Ascon-AEAD128 keys: 1/5;
+- unique ChaCha20-Poly1305 keys: 1/5;
+- unique Ascon ciphertext-plus-tag outputs: 1/5;
+- unique ChaCha20-Poly1305 ciphertext-plus-tag outputs: 1/5;
+- mean conditioned P(1): 0.516447;
+- mean conditioned byte diversity: 65.00/76.
+
+Both AEAD implementations authenticated and decrypted all five
+cases successfully.
+
+This result separates statistical appearance from entropy and
+diversity. Ascon-XOF128 transforms the visibly degenerate all-zero
+input into a substantially more balanced-looking byte sequence,
+but deterministic conditioning cannot create different outputs
+from identical inputs. Consequently, any collisions in the
+conditioned keys, nonces and fixed-message ciphertexts are
+propagation of the collapsed input state rather than weaknesses
+of Ascon-AEAD128 or ChaCha20-Poly1305.
+
+Successful AEAD round-trip is therefore a correctness property
+only and does not imply secure key generation or adequate source
+entropy.
+
+This targeted result complements the prefix campaign, where all
+20 short RAW prefixes were distinct even for several sources with
+very low empirical NIST SP 800-90B estimates. Together, the
+experiments demonstrate that neither simple key uniqueness nor
+visual/statistical whitening is sufficient evidence of entropy.
+
+Artifacts:
+
+- `results/aggregated/float64_collapse_key_material.tsv`
+- `results/aggregated/float64_collapse_conditioned_material.tsv`
+- `results/figures/float64_collapse_conditioning.png`
+- `results/figures/float64_collapse_conditioning.pdf`

@@ -444,3 +444,26 @@ target_link_libraries(
     PRIVATE
         bioentropy_core
 )
+
+add_executable(
+    source-key-material-probe
+    src/benchmark/probe_source_key_material.cpp
+)
+
+target_link_libraries(
+    source-key-material-probe
+    PRIVATE
+        bioentropy_core
+        OpenSSL::Crypto
+)
+
+add_executable(
+    ascon-xof128-condition-material
+    src/benchmark/condition_ascon_xof128_material.cpp
+)
+
+target_link_libraries(
+    ascon-xof128-condition-material
+    PRIVATE
+        bioentropy_core
+)
