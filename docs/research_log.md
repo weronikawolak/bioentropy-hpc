@@ -5756,3 +5756,55 @@ Artifacts:
 
 - `results/aggregated/cross_layer_source_summary.tsv`
 - `results/aggregated/cross_layer_cipher_performance.tsv`
+
+## 2026-09-11 — Final local cross-layer descriptive analysis
+
+The completed local source experiments were consolidated into a
+multi-dimensional cross-layer profile rather than a synthetic
+randomness score.
+
+Across the ten frozen deterministic source groups:
+
+- 4 sources had mean empirical
+  NIST SP 800-90B non-IID H_original below 0.01;
+- all 4 of those
+  very-low-H groups nevertheless produced 20/20 distinct
+  104-byte RAW prefix-derived materials;
+- 6 source groups
+  had at least one frozen realization classified FAILED by the
+  conservative Dieharder family-level screening;
+- all 10/10 source
+  groups produced 20/20 distinct ordinary RAW 104-byte prefix
+  materials;
+- all 10/10
+  source groups produced 20/20 distinct full-stream
+  Ascon-XOF128-conditioned prefix materials.
+
+The descriptive Spearman association between mean empirical
+H_original and Dieharder failure fraction was rho=-0.8401.
+This coefficient is reported only as a descriptive property of
+the ten heterogeneous frozen source groups and is not treated as
+a population-level inferential result.
+
+Most importantly, the ordinary short-prefix campaign demonstrates
+that observed uniqueness among 20 short records is too weak to
+diagnose source entropy. The targeted Logistic float64 collapse
+experiment provides the complementary longitudinal evidence:
+diversity falls from 3/5 immediately before collapse to 1/5 after
+collapse, and deterministic Ascon-XOF128 conditioning preserves
+those diversity counts despite strongly changing marginal byte
+statistics.
+
+Therefore the local evidence supports a multi-dimensional
+interpretation in which empirical entropy estimation, statistical
+randomness screening, short-material diversity, conditioning,
+cipher correctness and implementation performance remain distinct
+measurement dimensions.
+
+Artifacts:
+
+- `results/aggregated/cross_layer_source_summary.tsv`
+- `results/aggregated/cross_layer_descriptive_stats.tsv`
+- `results/tables/cross_layer_source_summary.md`
+- `results/figures/cross_layer_source_profile.png`
+- `results/figures/cross_layer_source_profile.pdf`
