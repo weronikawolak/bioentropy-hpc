@@ -5704,3 +5704,55 @@ Artifacts:
 - `results/figures/three_aead_encrypt_throughput.pdf`
 - `results/figures/three_aead_decrypt_throughput.png`
 - `results/figures/three_aead_decrypt_throughput.pdf`
+
+## 2026-09-11 — Cross-layer source-to-cipher evidence synthesis
+
+The frozen source-characterization, conditioning, key-material and
+AEAD experiments were integrated into a single source-level
+evidence table.
+
+The synthesis keeps distinct measurement dimensions separate:
+
+- empirical NIST SP 800-90B non-IID H_original;
+- conservative replicate-level Dieharder screening outcome;
+- RAW and full-stream Ascon-XOF128-conditioned 104-byte material
+  diversity;
+- derived Ascon-AEAD128, ChaCha20-Poly1305 and AES-128-GCM key
+  collision observations;
+- targeted Logistic float64 collapse behavior.
+
+A central negative result is that all four source groups with mean
+empirical H_original below 0.01 still produced 20/20 distinct
+104-byte RAW prefix-derived materials in the frozen AEAD3 campaign:
+
+logistic-fixed_q3_29, logistic-float32, rule90-cells1024, rule90-cells256.
+
+Thus absence of observed collisions in a small set of short
+source-derived prefixes is not evidence of high source entropy or
+unpredictability.
+
+The targeted Logistic float64 experiment provides the complementary
+failure case. Across the five frozen collapsed realizations:
+
+- pre-collapse RAW material diversity: 3/5;
+- pre-collapse local Ascon-XOF128 diversity: 3/5;
+- post-collapse RAW material diversity: 1/5;
+- post-collapse local Ascon-XOF128 diversity: 1/5.
+
+Therefore deterministic conditioning changes visible statistical
+properties but does not restore inter-realization diversity lost
+through deterministic source convergence.
+
+The three AEAD algorithms successfully authenticated and decrypted
+all evaluated records. Correct AEAD operation is consequently kept
+separate from claims about source entropy or key-generation
+security.
+
+Performance measurements are maintained in a separate cipher-level
+table because cipher implementation throughput is not a property
+of the entropy source.
+
+Artifacts:
+
+- `results/aggregated/cross_layer_source_summary.tsv`
+- `results/aggregated/cross_layer_cipher_performance.tsv`
