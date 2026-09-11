@@ -5808,3 +5808,49 @@ Artifacts:
 - `results/tables/cross_layer_source_summary.md`
 - `results/figures/cross_layer_source_profile.png`
 - `results/figures/cross_layer_source_profile.pdf`
+
+
+## 2026-09-11 — AES-256 CTR_DRBG reference source
+
+A second deterministic cryptographic reference generator was
+integrated into the common source framework:
+`ctr_drbg_aes256_reference`.
+
+The construction uses AES-256 CTR_DRBG with:
+
+- no derivation function inside CTR_DRBG;
+- no prediction resistance;
+- no Generate additional input;
+- 384-bit seed material;
+- deterministic reset behavior.
+
+The CTR_DRBG core was validated against a NIST CAVP
+AES-256/no-df known-answer test vector.
+
+For the experiment framework, the deterministic 256-bit experiment
+seed is expanded to the required 384-bit seed material using SHA-384
+with domain separation:
+
+`BIOENTROPY-HPC-CTR-DRBG-AES256-NODF-v1`.
+
+This expansion is deterministic and is not interpreted as creation
+of additional entropy.
+
+The source wrapper uses fixed 65,536-byte internal Generate requests.
+Consequently, the resulting reference stream is independent of the
+runner's external `execution.chunk_bytes` segmentation.
+
+Validation covers:
+
+- NIST known-answer behavior;
+- deterministic reset;
+- caller chunk-size invariance;
+- YAML parsing;
+- SourceConfig integration;
+- RandomnessSourceFactory integration;
+- ResultWriter provenance;
+- repeated runner-level output identity.
+
+As with the ChaCha20 reference source, CTR_DRBG is used as a
+deterministic cryptographic reference stream and not as evidence of
+fresh physical entropy.

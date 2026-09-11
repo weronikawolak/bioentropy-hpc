@@ -344,6 +344,28 @@ CellularAutomatonConfig parse_ca_config(
 }
 
 
+CtrDrbgAes256ReferenceConfig
+parse_ctr_drbg_aes256_reference_config(
+    const YAML::Node& parameters
+) {
+    /*
+     * No user-configurable algorithm parameters.
+     * A mapping is accepted for framework consistency.
+     */
+    if (
+        parameters
+        && !parameters.IsMap()
+    ) {
+        throw std::invalid_argument(
+            "CTR_DRBG AES-256 reference "
+            "parameters must be a mapping"
+        );
+    }
+
+    return CtrDrbgAes256ReferenceConfig{};
+}
+
+
 ChaCha20ReferenceConfig
 parse_chacha20_reference_config(
     const YAML::Node& parameters
@@ -565,6 +587,14 @@ ExperimentConfig ExperimentConfig::from_yaml(
         ) {
             config.source.parameters =
                 parse_ca_config(
+                    source["parameters"]
+                );
+        } else if (
+            config.source.type ==
+            "ctr_drbg_aes256_reference"
+        ) {
+            config.source.parameters =
+                parse_ctr_drbg_aes256_reference_config(
                     source["parameters"]
                 );
         } else if (
@@ -882,6 +912,27 @@ if (source.type == "logistic") {
             );
         }
     } else {
+    if (
+        source.type ==
+        "ctr_drbg_aes256_reference"
+    ) {
+        const auto* ctr_drbg =
+            std::get_if<
+                CtrDrbgAes256ReferenceConfig
+            >(
+                &source.parameters
+            );
+
+        if (ctr_drbg == nullptr) {
+            throw std::invalid_argument(
+                "CTR_DRBG AES-256 reference "
+                "source has invalid parameters"
+            );
+        }
+
+        return;
+    }
+
         throw std::invalid_argument(
             "unsupported source type: "
             + source.type

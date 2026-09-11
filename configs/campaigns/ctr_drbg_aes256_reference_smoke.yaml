@@ -1,0 +1,14 @@
+experiment:
+  id: "ctr-drbg-aes256-reference-smoke"
+  replicate_id: 0
+  master_seed: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+
+source:
+  type: "ctr_drbg_aes256_reference"
+  output_bits: 1048576
+
+  parameters:
+    initial_counter: 0
+
+execution:
+  chunk_bytes: 65536

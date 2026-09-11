@@ -6,7 +6,7 @@ Updated: 2026-09-11
 |---|---|---|
 | 0. Protocol freeze | DONE | Frozen deterministic campaign methodology and provenance rules |
 | 1. Reproducible/HPC framework | PARTIAL | Local reproducible framework complete; cluster execution pending |
-| 2. Reference generators | PARTIAL | ChaCha20 complete; CTR_DRBG remains |
+| 2. Reference generators | DONE | ChaCha20 and AES-256 CTR_DRBG deterministic reference sources complete |
 | 3. Logistic Map | DONE | float32, float64, Q3.29, MPFR-256, periodicity/collapse analysis |
 | 4. Cellular automata | DONE | Rule 30/90, 256/1024 cells |
 | 5. DNA | DONE | 50 genomic windows and paired NIST SP 800-90B units |
@@ -23,7 +23,6 @@ Updated: 2026-09-11
 
 ## Main remaining local work
 
-1. Add CTR_DRBG reference source.
 2. Add targeted TestU01 validation.
 3. Decide whether standalone NIST STS is required for the final scope.
 4. Curate final paper-ready figures and tables.

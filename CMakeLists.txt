@@ -32,6 +32,7 @@ add_library(
     src/sources/chaos/Chen4DDcsSource.cpp
     src/sources/cellular/CellularAutomatonSource.cpp
     src/sources/reference/ChaCha20ReferenceSource.cpp
+    src/sources/reference/CtrDrbgAes256ReferenceSource.cpp
     src/sources/dna/DNASequenceSource.cpp
     src/metrics/BitstreamStatistics.cpp
     src/io/ResultWriter.cpp
@@ -510,4 +511,21 @@ target_link_libraries(
     PRIVATE
         bioentropy_core
         OpenSSL::Crypto
+)
+
+
+add_executable(
+    ctr-drbg-aes256-reference-source-test
+    tests/test_ctr_drbg_aes256_reference_source.cpp
+)
+
+target_link_libraries(
+    ctr-drbg-aes256-reference-source-test
+    PRIVATE
+        bioentropy_core
+)
+
+add_test(
+    NAME ctr-drbg-aes256-reference-source-test
+    COMMAND ctr-drbg-aes256-reference-source-test
 )
