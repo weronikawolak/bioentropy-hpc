@@ -5645,3 +5645,62 @@ Artifacts:
 - `results/figures/float64_collapse_aead3.pdf`
 - `results/figures/float64_precollapse_suffix_audit.png`
 - `results/figures/float64_precollapse_suffix_audit.pdf`
+
+## 2026-09-11 — Three-AEAD local performance baseline
+
+A common local performance benchmark was run for Ascon-AEAD128, ChaCha20-Poly1305 and AES-128-GCM.
+
+The benchmark used:
+
+- message sizes: 64 B, 1 KiB, 64 KiB and 1 MiB;
+- associated data: 32 B;
+- fixed deterministic benchmark-only keys and nonces;
+- 20 timing samples per algorithm/message-size combination;
+- rotating algorithm execution order across samples;
+- successful authenticated round-trip verification;
+- median as the primary estimator;
+- IQR for dispersion;
+- deterministic 10,000-resample bootstrap 95% CI for the median.
+
+| Algorithm | Message | Encrypt MiB/s | 95% CI | vs Ascon | Decrypt MiB/s | 95% CI | vs Ascon |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| AES-128-GCM | 64 B | 48.7 | [46.3, 50.1] | 0.37× | 48.3 | [45.8, 50.5] | 0.37× |
+| Ascon-AEAD128 | 64 B | 132.1 | [127.8, 140.1] | 1.00× | 129.5 | [124.9, 133.7] | 1.00× |
+| ChaCha20-Poly1305 | 64 B | 44.6 | [42.8, 47.0] | 0.34× | 46.9 | [45.5, 47.8] | 0.36× |
+| AES-128-GCM | 1 KiB | 673.6 | [650.1, 695.7] | 1.99× | 692.2 | [674.6, 729.2] | 2.04× |
+| Ascon-AEAD128 | 1 KiB | 338.5 | [331.3, 342.5] | 1.00× | 339.5 | [337.6, 349.2] | 1.00× |
+| ChaCha20-Poly1305 | 1 KiB | 542.8 | [529.5, 551.4] | 1.60× | 544.4 | [535.0, 566.3] | 1.60× |
+| AES-128-GCM | 64 KiB | 4128.2 | [3914.3, 4278.8] | 11.24× | 3304.1 | [2823.7, 3683.1] | 9.05× |
+| Ascon-AEAD128 | 64 KiB | 367.2 | [356.8, 384.8] | 1.00× | 365.3 | [346.7, 374.4] | 1.00× |
+| ChaCha20-Poly1305 | 64 KiB | 1705.6 | [1616.3, 1823.6] | 4.64× | 1696.6 | [1370.1, 1791.8] | 4.64× |
+| AES-128-GCM | 1 MiB | 3517.7 | [3263.4, 3601.4] | 9.51× | 3522.5 | [3032.6, 3786.8] | 9.96× |
+| Ascon-AEAD128 | 1 MiB | 370.0 | [346.3, 379.9] | 1.00× | 353.6 | [347.2, 368.2] | 1.00× |
+| ChaCha20-Poly1305 | 1 MiB | 1546.6 | [1325.0, 1614.3] | 4.18× | 1492.4 | [1385.2, 1693.3] | 4.22× |
+
+Interpretation:
+
+- For the 64-byte payload, Ascon-AEAD128 had the highest observed throughput, indicating substantially lower effective per-call overhead in this implementation.
+
+- At 1 KiB, both OpenSSL-backed AES-128-GCM and ChaCha20-Poly1305 exceeded the Ascon-AEAD128 throughput.
+
+- At 64 KiB, AES-128-GCM encryption throughput was approximately 11.24 times the measured Ascon throughput, while ChaCha20-Poly1305 was approximately 4.64 times.
+
+- At 1 MiB, the corresponding encryption throughput ratios were approximately 9.51 times for AES-128-GCM and 4.18 times for ChaCha20-Poly1305.
+
+- These values characterize the specific local software implementations, compiler/build configuration, operating environment and processor used in this experiment. They must not be interpreted as implementation-independent performance rankings of the underlying algorithms.
+
+- In particular, AES-128-GCM and ChaCha20-Poly1305 are provided through OpenSSL, whereas the Ascon implementation comes from the project's selected Ascon C implementation. Optimization level and available hardware acceleration can therefore materially affect the observed ratios.
+
+- The local WSL measurements are treated as the reproducible single-node performance baseline. Final HPC scalability claims require separate cluster experiments.
+
+- Fixed benchmark keys/nonces were used only to remove key-generation variability from timing. Such nonce reuse is not deployment guidance.
+
+Artifacts:
+
+- `results/aggregated/three_aead_benchmark.tsv`
+- `results/aggregated/three_aead_benchmark_summary.tsv`
+- `results/aggregated/three_aead_benchmark_environment.txt`
+- `results/figures/three_aead_encrypt_throughput.png`
+- `results/figures/three_aead_encrypt_throughput.pdf`
+- `results/figures/three_aead_decrypt_throughput.png`
+- `results/figures/three_aead_decrypt_throughput.pdf`

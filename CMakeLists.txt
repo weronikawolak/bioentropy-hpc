@@ -498,3 +498,16 @@ target_link_libraries(
         bioentropy_core
         OpenSSL::Crypto
 )
+
+
+add_executable(
+    three-aead-benchmark
+    src/benchmark/benchmark_three_aeads.cpp
+)
+
+target_link_libraries(
+    three-aead-benchmark
+    PRIVATE
+        bioentropy_core
+        OpenSSL::Crypto
+)
