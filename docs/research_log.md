@@ -5523,3 +5523,125 @@ Artifacts:
 
 - `results/aggregated/source_key_material_aead3_campaign.tsv`
 - `results/aggregated/source_key_material_aead3_summary.tsv`
+
+## 2026-09-11 — Float64 pre-collapse output convergence and AEAD3 propagation
+
+A targeted bit-exact audit was performed on the five frozen
+Logistic float64 realizations previously observed to enter the
+permanent all-zero absorbing output state:
+
+- rep001: collapse bit 5,919,555;
+- rep005: collapse bit 16,181,612;
+- rep007: collapse bit 21,156,926;
+- rep008: collapse bit 10,996,001;
+- rep012: collapse bit 9,423,224.
+
+All five complete 16 MiB RAW streams remained distinct by SHA-256,
+confirming that the realizations are different full-stream
+trajectories.
+
+However, when output sequences were aligned by their independently
+measured collapse positions and compared backwards from the first
+permanently zero bit, unexpectedly long identical pre-collapse
+suffixes were observed.
+
+Pairwise common collapse-aligned suffix lengths:
+
+| Pair | Common suffix |
+|---|---:|
+| rep001 / rep005 | 3 bits |
+| rep001 / rep007 | 2 bits |
+| rep001 / rep008 | 2 bits |
+| rep001 / rep012 | 2 bits |
+| rep005 / rep007 | 2 bits |
+| rep005 / rep008 | 2 bits |
+| rep005 / rep012 | 2 bits |
+| rep007 / rep008 | 8,382,774 bits |
+| rep007 / rep012 | 4,379,783 bits |
+| rep008 / rep012 | 4,379,783 bits |
+
+The three-realization intersection for rep007, rep008 and rep012
+is therefore an identical collapse-aligned output suffix of
+4,379,783 bits, corresponding to 547,472 complete bytes plus
+7 additional bits.
+
+The rep007/rep008 pair shares an even longer suffix of
+8,382,774 bits (1,047,846 complete bytes plus 6 bits).
+
+This establishes that the experimentally observed finite-precision
+degeneracy is not restricted to the final all-zero absorbing
+region. For three frozen realizations, the emitted binary output
+has already converged to the same long collapse-relative tail well
+before the permanently zero output begins.
+
+The current evidence is strictly output-level. It does not by
+itself establish that the internal floating-point Logistic Map
+state x_n is identical across the realizations during the whole
+shared suffix. A state-level audit would be required to establish
+numeric-state coalescence.
+
+### AEAD3 propagation
+
+The same five collapsed realizations were evaluated using the
+104-byte `AEAD3-collapse-v1` protocol with:
+
+- Ascon-AEAD128;
+- ChaCha20-Poly1305;
+- AES-128-GCM.
+
+Four material variants were evaluated per realization:
+
+- pre-collapse RAW;
+- post-collapse RAW;
+- locally Ascon-XOF128-conditioned pre-collapse window;
+- locally Ascon-XOF128-conditioned post-collapse window.
+
+Observed numbers of unique 104-byte materials among the five
+realizations were:
+
+| Variant | Unique materials |
+|---|---:|
+| pre-collapse RAW | 3/5 |
+| pre-collapse local Ascon-XOF128 | 3/5 |
+| post-collapse RAW | 1/5 |
+| post-collapse local Ascon-XOF128 | 1/5 |
+
+Exactly the same 3/5 -> 3/5 and 1/5 -> 1/5 uniqueness pattern was
+observed independently for the derived keys, nonces and
+fixed-plaintext/fixed-AAD ciphertext-plus-tag outputs of all three
+AEAD algorithms.
+
+For the post-collapse RAW material:
+
+- zero bytes: 104/104;
+- unique byte values: 1;
+- P(1): 0.
+
+After local Ascon-XOF128 conditioning of the identical zero input:
+
+- zero bytes: 0/104;
+- unique byte values: 81;
+- P(1): 0.513221.
+
+Thus deterministic conditioning strongly changes the visible
+statistical appearance of the collapsed input while preserving
+its lack of inter-realization diversity: five identical inputs
+remain one unique conditioned output.
+
+All 20 AEAD3 records successfully authenticated and decrypted.
+This demonstrates implementation correctness only and must not be
+interpreted as evidence of secure key generation.
+
+Ciphertext collisions in this controlled experiment are caused by
+identical experimental key/nonce material under fixed plaintext
+and AAD. They are not interpreted as weaknesses of Ascon-AEAD128,
+ChaCha20-Poly1305 or AES-128-GCM.
+
+Artifacts:
+
+- `results/aggregated/float64_collapse_aead3.tsv`
+- `results/aggregated/float64_precollapse_suffix_audit.tsv`
+- `results/figures/float64_collapse_aead3.png`
+- `results/figures/float64_collapse_aead3.pdf`
+- `results/figures/float64_precollapse_suffix_audit.png`
+- `results/figures/float64_precollapse_suffix_audit.pdf`
