@@ -6051,3 +6051,43 @@ derived summaries:
 - PASSED: Logistic MPFR-256, ChaCha20, AES-256 CTR_DRBG;
 - SUSPECT: the remaining eight frozen source configurations;
 - total reported suspect statistics: 79.
+
+
+## 2026-09-13 — HPC execution tooling finalized
+
+The cluster-facing HPC execution layer was finalized locally.
+
+The scaling model is explicitly workflow-level ensemble parallelism:
+independent frozen experiment configurations are distributed across
+workers using static non-overlapping sharding. The results must not be
+interpreted as internal parallelization of one generator realization.
+
+Both ensemble strong and ensemble weak scaling paths were validated
+locally.
+
+Strong scaling keeps the total workload fixed.
+
+Weak scaling keeps workload per worker fixed and increases total work
+with the worker count.
+
+Elapsed durations use monotonic clocks. UTC timestamps are retained
+only for provenance.
+
+The campaign planner now generates the exact strong and weak workload
+manifests referenced by its Slurm commands. Each campaign also has a
+separate campaign identifier to prevent result-directory collisions.
+
+A frozen local plan with task counts 1, 2 and 4, three repetitions per
+point, and both scaling modes produced 18 planned Slurm jobs. No jobs
+were submitted.
+
+The Slurm execution script validates after `srun` that:
+
+- the expected number of rank result files exists;
+- the aggregate completed workload count matches the requested limit;
+- workload indices are unique;
+- workload coverage is complete.
+
+The full project regression remained 16/16 tests passing.
+
+Actual cluster measurements remain pending HPC access.

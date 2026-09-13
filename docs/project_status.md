@@ -96,3 +96,30 @@ flag is supplied.
 
 Actual HPC scaling measurements remain blocked only by cluster
 access and cluster-specific Slurm parameters.
+
+
+## HPC execution tooling
+
+Status: READY / CLUSTER-BLOCKED
+
+The local HPC execution layer is complete:
+
+- deterministic ensemble workload generation;
+- non-overlapping static rank sharding;
+- ensemble strong scaling;
+- ensemble weak scaling;
+- three-repetition aggregation;
+- monotonic wall-time measurement;
+- Slurm execution script;
+- cluster preflight validation;
+- frozen dry-run campaign planning;
+- per-campaign result directories;
+- rank-output completeness and duplication checks.
+
+The remaining HPC work requires access to the target cluster:
+
+1. cluster-specific preflight;
+2. tiny Slurm smoke test;
+3. final strong/weak scaling campaign;
+4. aggregation and scaling figures;
+5. final frozen reproduction.

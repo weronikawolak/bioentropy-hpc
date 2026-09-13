@@ -16,19 +16,22 @@ set -euo pipefail
 
 ROOT="${SLURM_SUBMIT_DIR}"
 
-cd "${ROOT}"
-
-if [[ -f .venv/bin/activate ]]; then
-    source .venv/bin/activate
-fi
+cd "$ROOT"
 
 PYTHON_BIN="${BIOENTROPY_PYTHON:-python3}"
 
 mkdir -p \
   "${BIOENTROPY_RESULT_DIR}"
 
+START_UTC="$(
+  date -u +"%Y-%m-%dT%H:%M:%SZ"
+)"
+
 START_NS="$(
-  date +%s%N
+  python3 - <<'PY'
+import time
+print(time.perf_counter_ns())
+PY
 )"
 
 srun \
@@ -44,13 +47,110 @@ srun \
   "${BIOENTROPY_RESULT_DIR}"
 
 END_NS="$(
-  date +%s%N
+  python3 - <<'PY'
+import time
+print(time.perf_counter_ns())
+PY
 )"
+
+END_UTC="$(
+  date -u +"%Y-%m-%dT%H:%M:%SZ"
+)"
+
+
+export BIOENTROPY_RESULT_DIR
+export BIOENTROPY_LIMIT
+
+"${PYTHON_BIN}" - <<'PYVERIFY'
+from pathlib import Path
+import json
+import os
+
+result_dir = Path(
+    os.environ[
+        "BIOENTROPY_RESULT_DIR"
+    ]
+)
+
+expected_ranks = int(
+    os.environ[
+        "SLURM_NTASKS"
+    ]
+)
+
+expected_items = int(
+    os.environ[
+        "BIOENTROPY_LIMIT"
+    ]
+)
+
+rank_files = sorted(
+    result_dir.glob(
+        "rank_*.json"
+    )
+)
+
+if len(rank_files) != expected_ranks:
+    raise RuntimeError(
+        f"Expected {expected_ranks} "
+        f"rank files, got "
+        f"{len(rank_files)}"
+    )
+
+indices = []
+
+for path in rank_files:
+    data = json.loads(
+        path.read_text()
+    )
+
+    if (
+        data["world_size"]
+        != expected_ranks
+    ):
+        raise RuntimeError(
+            f"{path}: incorrect world size"
+        )
+
+    indices.extend(
+        item["workload_index"]
+        for item
+        in data["workloads"]
+    )
+
+if len(indices) != expected_items:
+    raise RuntimeError(
+        "Completed workload count "
+        "does not match expected limit"
+    )
+
+if len(indices) != len(
+    set(indices)
+):
+    raise RuntimeError(
+        "Duplicate workload execution "
+        "detected"
+    )
+
+if sorted(indices) != list(
+    range(expected_items)
+):
+    raise RuntimeError(
+        "Incomplete workload coverage"
+    )
+
+print(
+    "PASSED: Slurm rank outputs "
+    "complete and non-overlapping"
+)
+PYVERIFY
 
 export START_NS
 export END_NS
+export START_UTC
+export END_UTC
 
-python - <<'PY'
+python3 - <<'PY'
 from pathlib import Path
 import csv
 import json
@@ -61,18 +161,14 @@ import subprocess
 root = Path.cwd()
 
 manifest = Path(
-    os.environ[
-        "BIOENTROPY_MANIFEST"
-    ]
+    os.environ["BIOENTROPY_MANIFEST"]
 )
 
 if not manifest.is_absolute():
     manifest = root / manifest
 
 limit = int(
-    os.environ[
-        "BIOENTROPY_LIMIT"
-    ]
+    os.environ["BIOENTROPY_LIMIT"]
 )
 
 with manifest.open(
@@ -104,9 +200,7 @@ end_ns = int(
 )
 
 result_dir = Path(
-    os.environ[
-        "BIOENTROPY_RESULT_DIR"
-    ]
+    os.environ["BIOENTROPY_RESULT_DIR"]
 )
 
 if not result_dir.is_absolute():
@@ -124,63 +218,71 @@ git_commit = subprocess.check_output(
 
 job = {
     "schema_version":
-        1,
+        2,
+
     "environment":
         "slurm",
+
+    "scaling_scope":
+        "independent-workload-ensemble",
+
     "profile":
-        os.environ[
-            "BIOENTROPY_PROFILE"
-        ],
+        os.environ["BIOENTROPY_PROFILE"],
+
     "mode":
-        os.environ[
-            "BIOENTROPY_MODE"
-        ],
+        os.environ["BIOENTROPY_MODE"],
+
     "world_size":
         int(
-            os.environ[
-                "SLURM_NTASKS"
-            ]
+            os.environ["SLURM_NTASKS"]
         ),
+
     "limit":
         limit,
+
     "repetition":
         int(
             os.environ[
                 "BIOENTROPY_REPETITION"
             ]
         ),
+
     "manifest":
         str(
             manifest.relative_to(root)
         ),
+
     "total_output_bits":
         total_bits,
-    "started_ns":
-        start_ns,
-    "finished_ns":
-        end_ns,
+
+    "started_utc":
+        os.environ["START_UTC"],
+
+    "finished_utc":
+        os.environ["END_UTC"],
+
     "wall_seconds":
         (
             end_ns
             - start_ns
         )
         / 1e9,
+
+    "git_commit":
+        git_commit,
+
+    "hostname":
+        platform.node(),
+
     "slurm_job_id":
         os.environ.get(
             "SLURM_JOB_ID"
         ),
+
     "slurm_job_nodelist":
         os.environ.get(
             "SLURM_JOB_NODELIST"
         ),
-    "slurm_cpus_per_task":
-        os.environ.get(
-            "SLURM_CPUS_PER_TASK"
-        ),
-    "hostname":
-        platform.node(),
-    "git_commit":
-        git_commit,
 }
 
 (result_dir / "job.json").write_text(
