@@ -2,6 +2,7 @@
 
 #include "bioentropy/sources/CellularAutomatonSource.hpp"
 #include "bioentropy/sources/ChaCha20ReferenceSource.hpp"
+#include "bioentropy/sources/CtrDrbgAes256ReferenceSource.hpp"
 #include "bioentropy/sources/DNASequenceSource.hpp"
 #include "bioentropy/sources/Chen4DDcsSource.hpp"
 #include "bioentropy/sources/LogisticMapSource.hpp"
@@ -78,6 +79,31 @@ create_randomness_source(
             CellularAutomatonSource
         >(
             *cellular,
+            seed
+        );
+    }
+
+    if (
+        config.type ==
+        "ctr_drbg_aes256_reference"
+    ) {
+        const auto* ctr_drbg =
+            std::get_if<
+                CtrDrbgAes256ReferenceConfig
+            >(
+                &config.parameters
+            );
+
+        if (ctr_drbg == nullptr) {
+            throw std::invalid_argument(
+                "invalid CTR_DRBG AES-256 "
+                "reference source configuration"
+            );
+        }
+
+        return std::make_unique<
+            CtrDrbgAes256ReferenceSource
+        >(
             seed
         );
     }

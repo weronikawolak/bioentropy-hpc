@@ -263,6 +263,68 @@ nlohmann::json source_parameters_to_json(
     }
 
 
+    if (
+        source.type ==
+        "ctr_drbg_aes256_reference"
+    ) {
+        const auto* config =
+            std::get_if<
+                CtrDrbgAes256ReferenceConfig
+            >(
+                &source.parameters
+            );
+
+        if (config == nullptr) {
+            throw std::invalid_argument(
+                "invalid CTR_DRBG AES-256 "
+                "reference source configuration"
+            );
+        }
+
+        return {
+            {
+                "algorithm",
+                "CTR_DRBG"
+            },
+            {
+                "primitive",
+                "AES-256"
+            },
+            {
+                "derivation_function",
+                false
+            },
+            {
+                "prediction_resistance",
+                false
+            },
+            {
+                "additional_input",
+                false
+            },
+            {
+                "seed_material_bytes",
+                48
+            },
+            {
+                "seed_derivation",
+                "SHA-384(domain || experiment_seed)"
+            },
+            {
+                "seed_derivation_domain",
+                "BIOENTROPY-HPC-CTR-DRBG-AES256-NODF-v1"
+            },
+            {
+                "internal_request_bytes",
+                65536
+            },
+            {
+                "uses_experiment_seed",
+                true
+            }
+        };
+    }
+
     if (source.type == "chacha20_reference") {
         const auto* config =
             std::get_if<

@@ -32,12 +32,15 @@ add_library(
     src/sources/chaos/Chen4DDcsSource.cpp
     src/sources/cellular/CellularAutomatonSource.cpp
     src/sources/reference/ChaCha20ReferenceSource.cpp
+    src/sources/reference/CtrDrbgAes256ReferenceSource.cpp
     src/sources/dna/DNASequenceSource.cpp
     src/metrics/BitstreamStatistics.cpp
     src/io/ResultWriter.cpp
     src/conditioning/AsconXof128Conditioner.cpp
     src/conditioning/ascon_xof128_variable.c
     src/crypto/AsconAead128.cpp
+    src/crypto/ChaCha20Poly1305.cpp
+    src/crypto/Aes128Gcm.cpp
     src/crypto/FettehaDnaCipher2023.cpp
     third_party/ascon-c/crypto_aead/asconaead128/ref/aead.c
     third_party/ascon-c/crypto_aead/asconaead128/ref/printstate.c
@@ -271,6 +274,24 @@ add_test(
 )
 
 
+
+
+add_executable(
+    chacha20-poly1305-test
+    tests/test_chacha20_poly1305.cpp
+)
+
+target_link_libraries(
+    chacha20-poly1305-test
+    PRIVATE
+        bioentropy_core
+)
+
+add_test(
+    NAME chacha20-poly1305-test
+    COMMAND chacha20-poly1305-test
+)
+
 add_executable(
     ascon-aead128-benchmark
     src/benchmark/benchmark_ascon_aead128.cpp
@@ -425,3 +446,144 @@ target_link_libraries(
     PRIVATE
         bioentropy_core
 )
+
+add_executable(
+    source-key-material-probe
+    src/benchmark/probe_source_key_material.cpp
+)
+
+target_link_libraries(
+    source-key-material-probe
+    PRIVATE
+        bioentropy_core
+        OpenSSL::Crypto
+)
+
+add_executable(
+    ascon-xof128-condition-material
+    src/benchmark/condition_ascon_xof128_material.cpp
+)
+
+target_link_libraries(
+    ascon-xof128-condition-material
+    PRIVATE
+        bioentropy_core
+)
+
+
+add_executable(
+    aes128-gcm-test
+    tests/test_aes128_gcm.cpp
+)
+
+target_link_libraries(
+    aes128-gcm-test
+    PRIVATE
+        bioentropy_core
+)
+
+add_test(
+    NAME aes128-gcm-test
+    COMMAND aes128-gcm-test
+)
+
+
+add_executable(
+    source-key-material-probe-aead3
+    src/benchmark/probe_source_key_material_aead3.cpp
+)
+
+target_link_libraries(
+    source-key-material-probe-aead3
+    PRIVATE
+        bioentropy_core
+        OpenSSL::Crypto
+)
+
+
+add_executable(
+    three-aead-benchmark
+    src/benchmark/benchmark_three_aeads.cpp
+)
+
+target_link_libraries(
+    three-aead-benchmark
+    PRIVATE
+        bioentropy_core
+        OpenSSL::Crypto
+)
+
+
+add_executable(
+    ctr-drbg-aes256-reference-source-test
+    tests/test_ctr_drbg_aes256_reference_source.cpp
+)
+
+target_link_libraries(
+    ctr-drbg-aes256-reference-source-test
+    PRIVATE
+        bioentropy_core
+)
+
+add_test(
+    NAME ctr-drbg-aes256-reference-source-test
+    COMMAND ctr-drbg-aes256-reference-source-test
+)
+
+# ------------------------------------------------------------
+# TestU01 SmallCrush source adapter
+# ------------------------------------------------------------
+
+find_path(
+    TESTU01_INCLUDE_DIR
+    NAMES testu01/bbattery.h
+)
+
+find_library(
+    TESTU01_LIBRARY
+    NAMES testu01
+)
+
+find_library(
+    TESTU01_PROBDIST_LIBRARY
+    NAMES testu01probdist
+)
+
+find_library(
+    TESTU01_MYLIB_LIBRARY
+    NAMES testu01mylib
+)
+
+if (
+    TESTU01_INCLUDE_DIR
+    AND TESTU01_LIBRARY
+    AND TESTU01_PROBDIST_LIBRARY
+    AND TESTU01_MYLIB_LIBRARY
+)
+    add_executable(
+        testu01-smallcrush-source
+        src/testu01/smallcrush_source.cpp
+    )
+
+    target_include_directories(
+        testu01-smallcrush-source
+        PRIVATE
+            ${TESTU01_INCLUDE_DIR}
+    )
+
+    target_link_libraries(
+        testu01-smallcrush-source
+        PRIVATE
+            bioentropy_core
+            ${TESTU01_LIBRARY}
+            ${TESTU01_PROBDIST_LIBRARY}
+            ${TESTU01_MYLIB_LIBRARY}
+            m
+    )
+else()
+    message(
+        WARNING
+        "TestU01 not found; "
+        "testu01-smallcrush-source disabled"
+    )
+endif()

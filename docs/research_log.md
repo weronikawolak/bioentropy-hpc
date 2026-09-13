@@ -4999,3 +4999,1018 @@ The figures are generated reproducibly by
 
 The Python plotting dependencies are recorded in
 `requirements-analysis.txt`.
+
+
+## 2026-09-08 — NIST SP 800-90B windowed float64 collapse validation
+
+### NIST SP 800-90B integration
+
+Integrated the official NIST SP 800-90B EntropyAssessment
+tool at tag `v1.1.8` as a Git submodule. The upstream
+self-test passed with numerical deltas far below `1e-6`.
+
+A preprocessing adapter was added to convert the project's
+MSB-first packed bitstreams into the one-byte-per-binary-symbol
+format expected by `ea_non_iid`.
+
+All generated RAW streams are checked against the SHA-256
+recorded for the frozen Dieharder campaign before entropy
+assessment.
+
+### 1M-prefix float64 screening
+
+All 20 frozen `logistic-float64` realizations were assessed
+using the first 1,000,000 output bits.
+
+All 20 regenerated RAW streams passed provenance validation.
+
+Observed `H_original` range:
+
+- minimum: 0.822919
+- maximum: 0.889318
+- mean: 0.854196
+
+For the five realizations known to collapse later
+(reps 001, 005, 007, 008, 012), mean prefix
+`H_original` was approximately 0.844889.
+
+For the remaining 15 realizations, mean prefix
+`H_original` was approximately 0.857298.
+
+The two groups overlap strongly at the 1M prefix. Therefore,
+early local entropy estimates do not reliably identify the
+later finite-precision collapse.
+
+### Windowed analysis — float64 rep001
+
+Frozen realization:
+
+- replicate: `rep001`
+- explicit x0: `0.14571965014107383`
+- RAW SHA-256:
+  `9d83f5dcc113c2ab47df859ba00b964cfcb8b8705b9673b9198e3e925c87c763`
+- exact collapse index: 5,919,555
+
+The last observed `1` in the generated output bitstream is at
+index 5,919,554. From bit 5,919,555 onward the output is exactly
+zero. This agrees exactly with the independently determined
+collapse reference; measured index difference = 0.
+
+NIST SP 800-90B non-IID estimates for consecutive 1M-bit
+windows:
+
+| Window | P(1) | H_original |
+|---|---:|---:|
+| 0–1M | 0.500879 | 0.823339 |
+| 1–2M | 0.500000 | 0.866904 |
+| 2–3M | 0.499581 | 0.843698 |
+| 3–4M | 0.499611 | 0.865989 |
+| 4–5M | 0.499994 | 0.840139 |
+| 5–6M | 0.459056 | 0.000062 |
+| 6–7M | 0.000000 | 0.000000 |
+| 7–8M | 0.000000 | 0.000000 |
+
+The 5–6M window contains the exact collapse and its NIST
+non-IID estimate falls to `0.000062`.
+
+For the post-collapse constant windows, `ea_non_iid` terminates
+with exit code 255 and reports:
+
+`Symbol alphabet consists of 1 symbol. No entropy awarded...`
+
+These windows are therefore stored as
+`assessment_status=degenerate_constant`, with empirical
+min-entropy `0.0`. The value is not represented as a numerical
+estimate returned by `ea_non_iid`; its provenance is explicitly
+recorded as `empirical_constant_distribution`.
+
+### Interpretation
+
+This result demonstrates a trajectory-length-dependent
+finite-precision failure. A float64 logistic-map realization can
+show high local statistical quality and substantial empirical
+non-IID min-entropy for several million output bits, followed by
+an abrupt transition to a deterministic absorbing state.
+
+The NIST values are treated as empirical sequence entropy
+estimates only. They do not establish that the deterministic
+logistic map is a compliant NIST entropy source and do not imply
+cryptographic unpredictability.
+
+## 2026-09-08 — Five-replicate float64 NIST 90B collapse campaign
+
+Windowed NIST SP 800-90B non-IID assessment was completed for all five frozen float64 realizations with independently identified exact finite-precision collapse points.
+
+All regenerated RAW streams passed SHA-256 provenance validation against the frozen Dieharder campaign.
+
+| Replicate | Collapse index | Collapse window | P(1) | H_original | Status |
+|---|---:|---|---:|---:|---|
+| rep001 | 5,919,555 | 5,000,000–6,000,000 | 0.459056 | 0.00006200 | nist_estimated |
+| rep005 | 16,181,612 | 16,000,000–17,000,000 | 0.091052 | 0.00000000 | nist_estimated |
+| rep007 | 21,156,926 | 21,000,000–22,000,000 | 0.078795 | 0.00000000 | nist_estimated |
+| rep008 | 10,996,001 | 10,000,000–11,000,000 | 0.498449 | 0.00295700 | nist_estimated |
+| rep012 | 9,423,224 | 9,000,000–10,000,000 | 0.211820 | 0.00000000 | nist_estimated |
+
+Mean `H_original` across the five collapse-containing windows: `0.00060380`.
+
+Immediately preceding full 1M-bit windows still showed high empirical non-IID min-entropy, approximately `0.84–0.88` bits/bit.
+
+The collapse-containing windows therefore show an abrupt loss of empirical min-entropy rather than a gradual degradation visible from the beginning of the sequence.
+
+For rep001, the independently detected collapse index `5,919,555` equals the first permanently zero output-bit index exactly.
+
+Post-collapse one-symbol windows cause `ea_non_iid` to report `No entropy awarded`. They are represented as `assessment_status=degenerate_constant` with empirical min-entropy `0.0`, while remaining explicitly distinct from numerical estimates returned by NIST.
+
+The parser also normalizes the textual NIST output `-0.000000` to numerical positive zero while retaining the original `ea_non_iid.txt` output for provenance.
+
+These results provide repeatable evidence of a trajectory-length-dependent finite-precision failure mechanism in 5 of the 20 pre-specified deterministic float64 logistic-map realizations.
+
+The NIST SP 800-90B results are interpreted strictly as empirical sequence entropy estimates. They do not make the deterministic logistic map a compliant entropy source and do not establish cryptographic unpredictability.
+
+Combined table:
+
+`results/aggregated/nist90b_logistic-float64_collapsed_windows.tsv`
+
+
+### Collapse-aligned NIST 90B figure
+
+A collapse-aligned visualization was generated for all five
+pre-specified float64 realizations that reach the exact
+finite-precision absorbing state.
+
+For each 1M-bit window, the plotted x-coordinate is the window
+midpoint relative to the independently determined exact collapse
+index:
+
+`relative_position = window_midpoint - collapse_index`.
+
+Therefore `x = 0` represents the exact finite-precision collapse
+for every realization despite their different absolute collapse
+positions.
+
+Descriptive aggregate values across the five realizations:
+
+- mean `H_original` in the last complete pre-collapse window:
+  `0.85626900` bits/bit;
+- mean `H_original` in the collapse-containing window:
+  `0.00060380` bits/bit;
+- mean absolute decrease:
+  `0.85566520` bits/bit.
+
+The result is descriptive for the five collapsed members of the
+20 pre-specified deterministic float64 realization set. It is not
+an estimate of the probability that an arbitrary float64 initial
+condition will collapse.
+
+Figure outputs:
+
+- `results/figures/nist90b_float64_collapse_aligned.png`
+- `results/figures/nist90b_float64_collapse_aligned.pdf`
+
+Machine-readable summaries:
+
+- `results/aggregated/nist90b_logistic-float64_collapsed_windows.tsv`
+- `results/aggregated/nist90b_logistic-float64_collapse_summary.tsv`
+
+Post-collapse one-symbol windows remain explicitly distinguished
+from NIST numerical estimates using
+`assessment_status=degenerate_constant`.
+
+## 2026-09-09 — NIST SP 800-90B 10-source prefix campaign
+
+Completed NIST SP 800-90B non-IID initial entropy screening for the full frozen 10-source campaign.
+
+Protocol:
+
+- 10 source groups;
+- 20 frozen realizations per source;
+- 1,000,000 sequential output bits per realization;
+- binary samples represented as one byte per bit;
+- MSB-first unpacking matching the framework bitstream semantics;
+- `ea_non_iid -i` with `bits_per_symbol=1`;
+- SHA-256 provenance checked against the frozen RAW campaign.
+
+All 200 regenerated RAW realizations passed provenance validation.
+
+| Source | n | H min | H mean | H median | H max | H SD | mean P(1) |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| logistic-float32 | 20 | 0.00000000 | 0.00000170 | 0.00000200 | 0.00000200 | 0.00000073 | 0.47133510 |
+| logistic-float64 | 20 | 0.82291900 | 0.85419560 | 0.84896500 | 0.88931800 | 0.02442606 | 0.50001335 |
+| logistic-fixed_q3_29 | 20 | 0.00000200 | 0.00000230 | 0.00000200 | 0.00000300 | 0.00000047 | 0.50566665 |
+| logistic-mpfr_256 | 20 | 0.81390700 | 0.85076925 | 0.84418900 | 0.91249600 | 0.02943400 | 0.49992130 |
+| chen-4d-dcs | 20 | 0.81732300 | 0.85573385 | 0.85696800 | 0.88291200 | 0.01649438 | 0.49957485 |
+| rule30-cells256 | 20 | 0.67989500 | 0.83901885 | 0.84049400 | 0.94333400 | 0.05192448 | 0.49999530 |
+| rule30-cells1024 | 20 | 0.81262800 | 0.85908580 | 0.85358700 | 0.91687100 | 0.03434355 | 0.49996915 |
+| rule90-cells256 | 20 | 0.00000000 | 0.00000000 | 0.00000000 | 0.00000000 | 0.00000000 | 0.01623620 |
+| rule90-cells1024 | 20 | 0.00000000 | 0.00000000 | 0.00000000 | 0.00000000 | 0.00000000 | 0.26150750 |
+| chacha20 | 20 | 0.80916500 | 0.84912370 | 0.84516700 | 0.90117300 | 0.02159738 | 0.50009170 |
+
+Key observations:
+
+- `logistic-float32` has essentially zero empirical non-IID min-entropy despite a much less extreme mean bit balance than the Rule90 cases.
+- `logistic-fixed_q3_29` is especially important: mean `P(1)` is close to 0.5 while `H_original` remains near zero. Bit balance alone therefore does not capture the strong sequential predictability detected by the non-IID estimators.
+- both Rule90 configurations have `H_original = 0` across all 20 frozen realizations.
+- float64, MPFR-256, Chen-4D, Rule30 and ChaCha20 form a high empirical-entropy group on the 1M-bit prefix, with mean `H_original` approximately 0.84–0.86 bits/bit.
+- Rule30-256 shows the largest spread within that high group, including a minimum near 0.68.
+
+These values are empirical sequence estimates produced by the SP 800-90B non-IID assessment methodology. They do not establish that deterministic chaos, cellular automata, or ChaCha20 are entropy sources, and they do not imply formal NIST entropy-source compliance or cryptographic secrecy.
+
+The prefix experiment also does not capture late finite-precision collapse in float64 realizations; that phenomenon is analyzed separately using collapse-aligned windowed assessments.
+
+Machine-readable outputs:
+
+- `results/aggregated/nist90b_prefix1m_all_sources.tsv`
+- `results/aggregated/nist90b_prefix1m_source_summary.tsv`
+
+### NIST 90B source-comparison figure
+
+Generated a publication-oriented comparison of the 10 frozen
+source groups using the mean 1M-prefix `H_original` across
+20 realizations per source. Error bars span the observed
+minimum-to-maximum replicate range.
+
+Figure outputs:
+
+- `results/figures/nist90b_prefix1m_sources.png`
+- `results/figures/nist90b_prefix1m_sources.pdf`
+
+The figure is descriptive of the frozen experimental realization
+set. In particular, high empirical `H_original` for a
+deterministic generator such as ChaCha20 must not be interpreted
+as evidence of fresh physical entropy.
+
+## 2026-09-09 — DNA NIST SP 800-90B campaign
+
+Completed a NIST SP 800-90B non-IID empirical entropy assessment for the frozen genomic DNA corpus.
+
+The existing DNA dataset contains 50 pre-specified genomic windows across five corpora, with 10 windows per corpus. Each window contains 400,000 nucleotides and produces 800,000 encoded bits under the frozen `acgt_2bit` mapping `A=00,C=01,G=10,T=11`.
+
+Because an individual frozen window contains fewer than the 1,000,000 samples required by the assessment tool, windows were paired deterministically within each corpus:
+
+- w00 + w01;
+- w02 + w03;
+- w04 + w05;
+- w06 + w07;
+- w08 + w09.
+
+This produces 25 frozen DNA assessment units: five pairs per corpus, each containing 1,600,000 encoded binary samples.
+
+Pairing scheme:
+
+`BIOENTROPY-HPC-DNA-NIST90B-PAIRING-v1`
+
+For every pair, both constituent bitstreams were regenerated from their frozen reference configs and independently checked against the previously recorded RAW SHA-256 values before concatenation.
+
+| Corpus | Pairs | H min | H mean | H median | H max | H SD | mean P(1) |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| arabidopsis | 5 | 0.00195300 | 0.06668700 | 0.05356800 | 0.17534700 | 0.06470177 | 0.49961512 |
+| bacillus_168 | 5 | 0.00633000 | 0.18786800 | 0.08717300 | 0.45257500 | 0.19037013 | 0.50007537 |
+| celegans | 5 | 0.00541500 | 0.02216180 | 0.01035100 | 0.04686100 | 0.02015057 | 0.49921187 |
+| ecoli_k12 | 5 | 0.00580200 | 0.02386620 | 0.01423700 | 0.07568600 | 0.02919051 | 0.49979137 |
+| yeast_s288c | 5 | 0.00180800 | 0.01756620 | 0.00980400 | 0.04974500 | 0.01964253 | 0.50075713 |
+
+Replication semantics differ deliberately from the synthetic generator campaign: the DNA assessment unit is a deterministic pair of pre-specified genomic windows rather than a different pseudorandom seed.
+
+The concatenation boundary is an analysis construction required to reach the NIST assessment sample size; it is not interpreted as a biologically contiguous sequence unless the underlying manifest establishes such contiguity.
+
+These SP 800-90B values are empirical assessments of the encoded sequence. They do not establish that genomic DNA is a physical entropy source, a compliant NIST entropy source, or a cryptographically unpredictable key source.
+
+Machine-readable artifacts:
+
+- `datasets/manifests/dna_nist90b_pairs.jsonl`
+- `datasets/manifests/dna_nist90b_pairs.tsv`
+- `results/aggregated/nist90b_dna_pairs.tsv`
+- `results/aggregated/nist90b_dna_corpus_summary.tsv`
+
+Figures:
+
+- `results/figures/nist90b_dna_corpora.png`
+- `results/figures/nist90b_dna_corpora.pdf`
+
+## 2026-09-09 — ChaCha20-Poly1305 AEAD baseline
+
+Added a ChaCha20-Poly1305 AEAD wrapper using the existing OpenSSL
+EVP dependency.
+
+The interface intentionally mirrors the existing Ascon-AEAD128
+wrapper:
+
+`encrypt(plaintext, associated_data, key, nonce)`
+
+returns the ciphertext followed by the authentication tag, while
+
+`decrypt(ciphertext_and_tag, associated_data, key, nonce)`
+
+returns the recovered plaintext only after successful
+authentication.
+
+Parameters:
+
+- key: 256 bits;
+- nonce: 96 bits;
+- authentication tag: 128 bits.
+
+Validation covers empty and non-empty plaintexts, round-trip
+correctness, deterministic output for identical complete inputs,
+ciphertext modification, authentication-tag modification,
+associated-data modification, incorrect keys, and malformed
+ciphertexts shorter than the authentication tag.
+
+The existing `ChaCha20ReferenceSource` remains a separate component:
+it is a deterministic reference bitstream generator used in source
+quality experiments. `ChaCha20Poly1305` is instead an authenticated
+encryption baseline for the downstream cryptographic integration
+campaign.
+
+No claim about source entropy is inferred from successful AEAD
+operation. The next integration stage evaluates how frozen RAW and
+conditioned source material propagates into derived keys/nonces and
+subsequent AEAD use.
+
+## 2026-09-09 — Source-derived AEAD key-material protocol
+
+Defined the downstream key-material layout used to connect the
+frozen source campaign with authenticated-encryption experiments.
+
+Each realization contributes a 76-byte experimental material
+record with non-overlapping fields:
+
+- bytes 0–15: Ascon-AEAD128 key;
+- bytes 16–31: Ascon-AEAD128 nonce;
+- bytes 32–63: ChaCha20-Poly1305 key;
+- bytes 64–75: ChaCha20-Poly1305 nonce.
+
+The separation prevents the same source bytes from being reused
+simultaneously as key material for both cipher baselines.
+
+Both AEAD implementations encrypt the same deterministic 4096-byte
+plaintext with the same deterministic 32-byte associated-data
+payload.
+
+The probe records SHA-256 identifiers for the complete material
+record, keys, nonces and resulting ciphertext-plus-tag values.
+It also records material zero-byte count, byte diversity and bit
+balance, together with authenticated-decryption round-trip status.
+
+A zero-material control is intentionally retained. Successful AEAD
+round-trip with an all-zero key/nonce input demonstrates that
+cryptographic API correctness must not be confused with entropy,
+unpredictability or secure key generation.
+
+The subsequent campaign compares two material paths:
+
+`frozen RAW source -> 76-byte key-material record`
+
+and
+
+`frozen RAW source -> Ascon-XOF128 conditioning -> 76-byte
+key-material record`.
+
+Conditioning is treated as deterministic transformation/whitening.
+It is not interpreted as creating entropy that was absent from the
+input source.
+
+## 2026-09-10 — Float64 post-collapse key-material conditioning
+
+Evaluated the five pre-specified frozen Logistic float64
+realizations previously observed to enter a deterministic
+all-zero absorbing state: rep001, rep005, rep007, rep008 and
+rep012.
+
+For each realization, the 608 bits beginning exactly at the
+previously established collapse index were extracted. All five
+post-collapse RAW records consisted of exactly 76 zero bytes.
+
+The 76-byte zero records were then independently processed with
+Ascon-XOF128 to produce 76-byte conditioned key-material records.
+
+Observed diversity:
+
+- unique post-collapse RAW inputs: 1/5;
+- unique conditioned materials: 1/5;
+- unique Ascon-AEAD128 keys: 1/5;
+- unique ChaCha20-Poly1305 keys: 1/5;
+- unique Ascon ciphertext-plus-tag outputs: 1/5;
+- unique ChaCha20-Poly1305 ciphertext-plus-tag outputs: 1/5;
+- mean conditioned P(1): 0.516447;
+- mean conditioned byte diversity: 65.00/76.
+
+Both AEAD implementations authenticated and decrypted all five
+cases successfully.
+
+This result separates statistical appearance from entropy and
+diversity. Ascon-XOF128 transforms the visibly degenerate all-zero
+input into a substantially more balanced-looking byte sequence,
+but deterministic conditioning cannot create different outputs
+from identical inputs. Consequently, any collisions in the
+conditioned keys, nonces and fixed-message ciphertexts are
+propagation of the collapsed input state rather than weaknesses
+of Ascon-AEAD128 or ChaCha20-Poly1305.
+
+Successful AEAD round-trip is therefore a correctness property
+only and does not imply secure key generation or adequate source
+entropy.
+
+This targeted result complements the prefix campaign, where all
+20 short RAW prefixes were distinct even for several sources with
+very low empirical NIST SP 800-90B estimates. Together, the
+experiments demonstrate that neither simple key uniqueness nor
+visual/statistical whitening is sufficient evidence of entropy.
+
+Artifacts:
+
+- `results/aggregated/float64_collapse_key_material.tsv`
+- `results/aggregated/float64_collapse_conditioned_material.tsv`
+- `results/figures/float64_collapse_conditioning.png`
+- `results/figures/float64_collapse_conditioning.pdf`
+
+## 2026-09-10 — Integrated source-to-crypto evidence
+
+Integrated the frozen source-characterization and downstream key-material results into a single 10-source descriptive comparison.
+
+| Source | NIST H mean | NIST H min | Dieharder FAIL reps | RAW prefix unique | Conditioned prefix unique |
+|---|---:|---:|---:|---:|---:|
+| chacha20 | 0.849124 | 0.809165 | 0/20 | 20/20 | 20/20 |
+| chen-4d-dcs | 0.855734 | 0.817323 | 0/20 | 20/20 | 20/20 |
+| logistic-fixed_q3_29 | 0.000002 | 0.000002 | 20/20 | 20/20 | 20/20 |
+| logistic-float32 | 0.000002 | 0.000000 | 20/20 | 20/20 | 20/20 |
+| logistic-float64 | 0.854196 | 0.822919 | 5/20 | 20/20 | 20/20 |
+| logistic-mpfr_256 | 0.850769 | 0.813907 | 0/20 | 20/20 | 20/20 |
+| rule30-cells1024 | 0.859086 | 0.812628 | 0/20 | 20/20 | 20/20 |
+| rule30-cells256 | 0.839019 | 0.679895 | 20/20 | 20/20 | 20/20 |
+| rule90-cells1024 | 0.000000 | 0.000000 | 20/20 | 20/20 | 20/20 |
+| rule90-cells256 | 0.000000 | 0.000000 | 20/20 | 20/20 | 20/20 |
+
+Interpretation:
+
+- All frozen 76-byte prefix-derived key-material records were distinct across the 20 realizations of every source. Therefore absence of observed short-prefix collisions is not sufficient evidence of high entropy.
+
+- This distinction is especially important for sources whose empirical non-IID NIST SP 800-90B estimates were very low despite distinct prefix-derived material.
+
+- Dieharder replicate outcomes and NIST H_original are different measurements and must not be treated as interchangeable randomness or security scores.
+
+- The NIST values characterize the first 1,000,000 output bits, while the frozen Dieharder campaign evaluates much longer streams. The float64 collapse experiment demonstrates why this window-length distinction matters: a prefix may retain high empirical H before a later deterministic absorbing state occurs.
+
+- Ascon-XOF128 can transform visibly structured material into statistically more balanced output but cannot create entropy or diversity absent from identical inputs.
+
+- Successful Ascon-AEAD128 and ChaCha20-Poly1305 round-trip tests demonstrate implementation correctness only. They do not establish secure key generation.
+
+- ChaCha20 remains a deterministic software reference source in this study; high empirical H for that stream is not interpreted as fresh physical entropy.
+
+The integrated figure is descriptive rather than a formal correlation analysis. Only ten heterogeneous deterministic source groups are compared, and the underlying measurements use different test procedures and observation lengths.
+
+Artifacts:
+
+- `results/aggregated/integrated_source_quality.tsv`
+- `results/figures/integrated_source_quality.png`
+- `results/figures/integrated_source_quality.pdf`
+
+## 2026-09-10 — Three-AEAD source-derived key-material campaign
+
+Extended the frozen source-derived key-material experiment to
+three authenticated-encryption baselines while preserving the
+previous 76-byte protocol as a separate frozen experiment.
+
+The new protocol is identified as `AEAD3-v1` and uses 104 bytes
+from each evaluated stream:
+
+- bytes 0-15: Ascon-AEAD128 key;
+- bytes 16-31: Ascon-AEAD128 nonce;
+- bytes 32-63: ChaCha20-Poly1305 key;
+- bytes 64-75: ChaCha20-Poly1305 nonce;
+- bytes 76-91: AES-128-GCM key;
+- bytes 92-103: AES-128-GCM nonce.
+
+The same fixed deterministic 4096-byte plaintext and 32-byte
+associated-data record are used for all three AEADs. The protocol
+is a controlled propagation experiment and is not deployment
+guidance for nonce management or cryptographic key generation.
+
+The campaign contains 10 frozen source groups, 20 realizations per
+group, and two evaluated modes (RAW and full-stream Ascon-XOF128),
+for 400 total records.
+
+All 400 records passed source-stream provenance verification and
+successful authenticated round-trip for Ascon-AEAD128,
+ChaCha20-Poly1305 and AES-128-GCM.
+
+Across the 20 source/mode groups:
+
+- total 104-byte material collisions: 0;
+- total Ascon key collisions: 0;
+- total ChaCha20-Poly1305 key collisions: 0;
+- total AES-128-GCM key collisions: 1.
+
+The absence of observed collisions among only 20 realizations per
+group is not interpreted as evidence of high source entropy,
+unpredictability or cryptographic security. This is particularly
+important because previous NIST SP 800-90B experiments identified
+sources with extremely low empirical non-IID min-entropy estimates
+despite distinct short prefix-derived materials.
+
+Likewise, ciphertext uniqueness under fixed plaintext and AAD is
+not used as a cipher-security metric. Identical ciphertexts in the
+targeted collapse experiment would reflect propagation of
+identical experimental key/nonce material rather than a weakness
+of the underlying AEAD.
+
+For the full-stream Ascon-XOF128 mode, the evaluated prefix is the
+prefix of the XOF output computed from the complete RAW stream.
+It must therefore not be interpreted as local conditioning of only
+the first 104 RAW bytes.
+
+Artifacts:
+
+- `results/aggregated/source_key_material_aead3_campaign.tsv`
+- `results/aggregated/source_key_material_aead3_summary.tsv`
+
+## 2026-09-11 — Float64 pre-collapse output convergence and AEAD3 propagation
+
+A targeted bit-exact audit was performed on the five frozen
+Logistic float64 realizations previously observed to enter the
+permanent all-zero absorbing output state:
+
+- rep001: collapse bit 5,919,555;
+- rep005: collapse bit 16,181,612;
+- rep007: collapse bit 21,156,926;
+- rep008: collapse bit 10,996,001;
+- rep012: collapse bit 9,423,224.
+
+All five complete 16 MiB RAW streams remained distinct by SHA-256,
+confirming that the realizations are different full-stream
+trajectories.
+
+However, when output sequences were aligned by their independently
+measured collapse positions and compared backwards from the first
+permanently zero bit, unexpectedly long identical pre-collapse
+suffixes were observed.
+
+Pairwise common collapse-aligned suffix lengths:
+
+| Pair | Common suffix |
+|---|---:|
+| rep001 / rep005 | 3 bits |
+| rep001 / rep007 | 2 bits |
+| rep001 / rep008 | 2 bits |
+| rep001 / rep012 | 2 bits |
+| rep005 / rep007 | 2 bits |
+| rep005 / rep008 | 2 bits |
+| rep005 / rep012 | 2 bits |
+| rep007 / rep008 | 8,382,774 bits |
+| rep007 / rep012 | 4,379,783 bits |
+| rep008 / rep012 | 4,379,783 bits |
+
+The three-realization intersection for rep007, rep008 and rep012
+is therefore an identical collapse-aligned output suffix of
+4,379,783 bits, corresponding to 547,472 complete bytes plus
+7 additional bits.
+
+The rep007/rep008 pair shares an even longer suffix of
+8,382,774 bits (1,047,846 complete bytes plus 6 bits).
+
+This establishes that the experimentally observed finite-precision
+degeneracy is not restricted to the final all-zero absorbing
+region. For three frozen realizations, the emitted binary output
+has already converged to the same long collapse-relative tail well
+before the permanently zero output begins.
+
+The current evidence is strictly output-level. It does not by
+itself establish that the internal floating-point Logistic Map
+state x_n is identical across the realizations during the whole
+shared suffix. A state-level audit would be required to establish
+numeric-state coalescence.
+
+### AEAD3 propagation
+
+The same five collapsed realizations were evaluated using the
+104-byte `AEAD3-collapse-v1` protocol with:
+
+- Ascon-AEAD128;
+- ChaCha20-Poly1305;
+- AES-128-GCM.
+
+Four material variants were evaluated per realization:
+
+- pre-collapse RAW;
+- post-collapse RAW;
+- locally Ascon-XOF128-conditioned pre-collapse window;
+- locally Ascon-XOF128-conditioned post-collapse window.
+
+Observed numbers of unique 104-byte materials among the five
+realizations were:
+
+| Variant | Unique materials |
+|---|---:|
+| pre-collapse RAW | 3/5 |
+| pre-collapse local Ascon-XOF128 | 3/5 |
+| post-collapse RAW | 1/5 |
+| post-collapse local Ascon-XOF128 | 1/5 |
+
+Exactly the same 3/5 -> 3/5 and 1/5 -> 1/5 uniqueness pattern was
+observed independently for the derived keys, nonces and
+fixed-plaintext/fixed-AAD ciphertext-plus-tag outputs of all three
+AEAD algorithms.
+
+For the post-collapse RAW material:
+
+- zero bytes: 104/104;
+- unique byte values: 1;
+- P(1): 0.
+
+After local Ascon-XOF128 conditioning of the identical zero input:
+
+- zero bytes: 0/104;
+- unique byte values: 81;
+- P(1): 0.513221.
+
+Thus deterministic conditioning strongly changes the visible
+statistical appearance of the collapsed input while preserving
+its lack of inter-realization diversity: five identical inputs
+remain one unique conditioned output.
+
+All 20 AEAD3 records successfully authenticated and decrypted.
+This demonstrates implementation correctness only and must not be
+interpreted as evidence of secure key generation.
+
+Ciphertext collisions in this controlled experiment are caused by
+identical experimental key/nonce material under fixed plaintext
+and AAD. They are not interpreted as weaknesses of Ascon-AEAD128,
+ChaCha20-Poly1305 or AES-128-GCM.
+
+Artifacts:
+
+- `results/aggregated/float64_collapse_aead3.tsv`
+- `results/aggregated/float64_precollapse_suffix_audit.tsv`
+- `results/figures/float64_collapse_aead3.png`
+- `results/figures/float64_collapse_aead3.pdf`
+- `results/figures/float64_precollapse_suffix_audit.png`
+- `results/figures/float64_precollapse_suffix_audit.pdf`
+
+## 2026-09-11 — Three-AEAD local performance baseline
+
+A common local performance benchmark was run for Ascon-AEAD128, ChaCha20-Poly1305 and AES-128-GCM.
+
+The benchmark used:
+
+- message sizes: 64 B, 1 KiB, 64 KiB and 1 MiB;
+- associated data: 32 B;
+- fixed deterministic benchmark-only keys and nonces;
+- 20 timing samples per algorithm/message-size combination;
+- rotating algorithm execution order across samples;
+- successful authenticated round-trip verification;
+- median as the primary estimator;
+- IQR for dispersion;
+- deterministic 10,000-resample bootstrap 95% CI for the median.
+
+| Algorithm | Message | Encrypt MiB/s | 95% CI | vs Ascon | Decrypt MiB/s | 95% CI | vs Ascon |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| AES-128-GCM | 64 B | 48.7 | [46.3, 50.1] | 0.37× | 48.3 | [45.8, 50.5] | 0.37× |
+| Ascon-AEAD128 | 64 B | 132.1 | [127.8, 140.1] | 1.00× | 129.5 | [124.9, 133.7] | 1.00× |
+| ChaCha20-Poly1305 | 64 B | 44.6 | [42.8, 47.0] | 0.34× | 46.9 | [45.5, 47.8] | 0.36× |
+| AES-128-GCM | 1 KiB | 673.6 | [650.1, 695.7] | 1.99× | 692.2 | [674.6, 729.2] | 2.04× |
+| Ascon-AEAD128 | 1 KiB | 338.5 | [331.3, 342.5] | 1.00× | 339.5 | [337.6, 349.2] | 1.00× |
+| ChaCha20-Poly1305 | 1 KiB | 542.8 | [529.5, 551.4] | 1.60× | 544.4 | [535.0, 566.3] | 1.60× |
+| AES-128-GCM | 64 KiB | 4128.2 | [3914.3, 4278.8] | 11.24× | 3304.1 | [2823.7, 3683.1] | 9.05× |
+| Ascon-AEAD128 | 64 KiB | 367.2 | [356.8, 384.8] | 1.00× | 365.3 | [346.7, 374.4] | 1.00× |
+| ChaCha20-Poly1305 | 64 KiB | 1705.6 | [1616.3, 1823.6] | 4.64× | 1696.6 | [1370.1, 1791.8] | 4.64× |
+| AES-128-GCM | 1 MiB | 3517.7 | [3263.4, 3601.4] | 9.51× | 3522.5 | [3032.6, 3786.8] | 9.96× |
+| Ascon-AEAD128 | 1 MiB | 370.0 | [346.3, 379.9] | 1.00× | 353.6 | [347.2, 368.2] | 1.00× |
+| ChaCha20-Poly1305 | 1 MiB | 1546.6 | [1325.0, 1614.3] | 4.18× | 1492.4 | [1385.2, 1693.3] | 4.22× |
+
+Interpretation:
+
+- For the 64-byte payload, Ascon-AEAD128 had the highest observed throughput, indicating substantially lower effective per-call overhead in this implementation.
+
+- At 1 KiB, both OpenSSL-backed AES-128-GCM and ChaCha20-Poly1305 exceeded the Ascon-AEAD128 throughput.
+
+- At 64 KiB, AES-128-GCM encryption throughput was approximately 11.24 times the measured Ascon throughput, while ChaCha20-Poly1305 was approximately 4.64 times.
+
+- At 1 MiB, the corresponding encryption throughput ratios were approximately 9.51 times for AES-128-GCM and 4.18 times for ChaCha20-Poly1305.
+
+- These values characterize the specific local software implementations, compiler/build configuration, operating environment and processor used in this experiment. They must not be interpreted as implementation-independent performance rankings of the underlying algorithms.
+
+- In particular, AES-128-GCM and ChaCha20-Poly1305 are provided through OpenSSL, whereas the Ascon implementation comes from the project's selected Ascon C implementation. Optimization level and available hardware acceleration can therefore materially affect the observed ratios.
+
+- The local WSL measurements are treated as the reproducible single-node performance baseline. Final HPC scalability claims require separate cluster experiments.
+
+- Fixed benchmark keys/nonces were used only to remove key-generation variability from timing. Such nonce reuse is not deployment guidance.
+
+Artifacts:
+
+- `results/aggregated/three_aead_benchmark.tsv`
+- `results/aggregated/three_aead_benchmark_summary.tsv`
+- `results/aggregated/three_aead_benchmark_environment.txt`
+- `results/figures/three_aead_encrypt_throughput.png`
+- `results/figures/three_aead_encrypt_throughput.pdf`
+- `results/figures/three_aead_decrypt_throughput.png`
+- `results/figures/three_aead_decrypt_throughput.pdf`
+
+## 2026-09-11 — Cross-layer source-to-cipher evidence synthesis
+
+The frozen source-characterization, conditioning, key-material and
+AEAD experiments were integrated into a single source-level
+evidence table.
+
+The synthesis keeps distinct measurement dimensions separate:
+
+- empirical NIST SP 800-90B non-IID H_original;
+- conservative replicate-level Dieharder screening outcome;
+- RAW and full-stream Ascon-XOF128-conditioned 104-byte material
+  diversity;
+- derived Ascon-AEAD128, ChaCha20-Poly1305 and AES-128-GCM key
+  collision observations;
+- targeted Logistic float64 collapse behavior.
+
+A central negative result is that all four source groups with mean
+empirical H_original below 0.01 still produced 20/20 distinct
+104-byte RAW prefix-derived materials in the frozen AEAD3 campaign:
+
+logistic-fixed_q3_29, logistic-float32, rule90-cells1024, rule90-cells256.
+
+Thus absence of observed collisions in a small set of short
+source-derived prefixes is not evidence of high source entropy or
+unpredictability.
+
+The targeted Logistic float64 experiment provides the complementary
+failure case. Across the five frozen collapsed realizations:
+
+- pre-collapse RAW material diversity: 3/5;
+- pre-collapse local Ascon-XOF128 diversity: 3/5;
+- post-collapse RAW material diversity: 1/5;
+- post-collapse local Ascon-XOF128 diversity: 1/5.
+
+Therefore deterministic conditioning changes visible statistical
+properties but does not restore inter-realization diversity lost
+through deterministic source convergence.
+
+The three AEAD algorithms successfully authenticated and decrypted
+all evaluated records. Correct AEAD operation is consequently kept
+separate from claims about source entropy or key-generation
+security.
+
+Performance measurements are maintained in a separate cipher-level
+table because cipher implementation throughput is not a property
+of the entropy source.
+
+Artifacts:
+
+- `results/aggregated/cross_layer_source_summary.tsv`
+- `results/aggregated/cross_layer_cipher_performance.tsv`
+
+## 2026-09-11 — Final local cross-layer descriptive analysis
+
+The completed local source experiments were consolidated into a
+multi-dimensional cross-layer profile rather than a synthetic
+randomness score.
+
+Across the ten frozen deterministic source groups:
+
+- 4 sources had mean empirical
+  NIST SP 800-90B non-IID H_original below 0.01;
+- all 4 of those
+  very-low-H groups nevertheless produced 20/20 distinct
+  104-byte RAW prefix-derived materials;
+- 6 source groups
+  had at least one frozen realization classified FAILED by the
+  conservative Dieharder family-level screening;
+- all 10/10 source
+  groups produced 20/20 distinct ordinary RAW 104-byte prefix
+  materials;
+- all 10/10
+  source groups produced 20/20 distinct full-stream
+  Ascon-XOF128-conditioned prefix materials.
+
+The descriptive Spearman association between mean empirical
+H_original and Dieharder failure fraction was rho=-0.8401.
+This coefficient is reported only as a descriptive property of
+the ten heterogeneous frozen source groups and is not treated as
+a population-level inferential result.
+
+Most importantly, the ordinary short-prefix campaign demonstrates
+that observed uniqueness among 20 short records is too weak to
+diagnose source entropy. The targeted Logistic float64 collapse
+experiment provides the complementary longitudinal evidence:
+diversity falls from 3/5 immediately before collapse to 1/5 after
+collapse, and deterministic Ascon-XOF128 conditioning preserves
+those diversity counts despite strongly changing marginal byte
+statistics.
+
+Therefore the local evidence supports a multi-dimensional
+interpretation in which empirical entropy estimation, statistical
+randomness screening, short-material diversity, conditioning,
+cipher correctness and implementation performance remain distinct
+measurement dimensions.
+
+Artifacts:
+
+- `results/aggregated/cross_layer_source_summary.tsv`
+- `results/aggregated/cross_layer_descriptive_stats.tsv`
+- `results/tables/cross_layer_source_summary.md`
+- `results/figures/cross_layer_source_profile.png`
+- `results/figures/cross_layer_source_profile.pdf`
+
+
+## 2026-09-11 — AES-256 CTR_DRBG reference source
+
+A second deterministic cryptographic reference generator was
+integrated into the common source framework:
+`ctr_drbg_aes256_reference`.
+
+The construction uses AES-256 CTR_DRBG with:
+
+- no derivation function inside CTR_DRBG;
+- no prediction resistance;
+- no Generate additional input;
+- 384-bit seed material;
+- deterministic reset behavior.
+
+The CTR_DRBG core was validated against a NIST CAVP
+AES-256/no-df known-answer test vector.
+
+For the experiment framework, the deterministic 256-bit experiment
+seed is expanded to the required 384-bit seed material using SHA-384
+with domain separation:
+
+`BIOENTROPY-HPC-CTR-DRBG-AES256-NODF-v1`.
+
+This expansion is deterministic and is not interpreted as creation
+of additional entropy.
+
+The source wrapper uses fixed 65,536-byte internal Generate requests.
+Consequently, the resulting reference stream is independent of the
+runner's external `execution.chunk_bytes` segmentation.
+
+Validation covers:
+
+- NIST known-answer behavior;
+- deterministic reset;
+- caller chunk-size invariance;
+- YAML parsing;
+- SourceConfig integration;
+- RandomnessSourceFactory integration;
+- ResultWriter provenance;
+- repeated runner-level output identity.
+
+As with the ChaCha20 reference source, CTR_DRBG is used as a
+deterministic cryptographic reference stream and not as evidence of
+fresh physical entropy.
+
+## 2026-09-13 — Targeted TestU01 SmallCrush screening
+
+A targeted TestU01 SmallCrush campaign was performed on one
+pre-specified deterministic realization per non-finite generator.
+
+The frozen subset contained 11 generators:
+
+- four Logistic Map arithmetic variants;
+- Chen 4D DCS;
+- Rule 30 at 256 and 1024 cells;
+- Rule 90 at 256 and 1024 cells;
+- ChaCha20 reference;
+- AES-256 CTR_DRBG reference.
+
+Finite DNA windows were intentionally excluded because repeating a
+genomic window solely to satisfy TestU01 data requirements would
+introduce artificial periodicity.
+
+SmallCrush completed successfully for all 11 configurations.
+
+Generators for which TestU01 reported no p-values outside its
+SmallCrush acceptance reporting interval:
+
+logistic-mpfr_256, chacha20, ctr-drbg-aes256.
+
+Generators for which at least one SmallCrush statistic was flagged:
+
+logistic-float32, logistic-float64, logistic-fixed_q3_29, chen-4d-dcs, rule30-cells256, rule30-cells1024, rule90-cells256, rule90-cells1024.
+
+These results are interpreted as targeted statistical screening of
+one frozen realization per generator. They are not interpreted as
+entropy estimates, security proofs, or estimates of population-level
+failure prevalence.
+
+Individual SmallCrush statistics are not treated as independent
+observations and are not combined into a synthetic randomness score.
+
+The cryptographic reference generators ChaCha20 and AES-256 CTR_DRBG
+both completed SmallCrush without reported suspect p-values in their
+frozen realizations.
+
+Logistic MPFR-256 also completed the battery without reported suspect
+p-values, while the lower-precision Logistic variants were flagged.
+This is consistent with the broader observation that finite arithmetic
+can materially change deterministic chaotic-generator behavior, while
+not establishing cryptographic unpredictability or fresh entropy.
+
+Artifacts:
+
+- `results/aggregated/testu01_smallcrush_subset_manifest.tsv`
+- `results/aggregated/testu01_smallcrush_summary.tsv`
+- `results/aggregated/testu01_smallcrush_suspect_tests.tsv`
+- `results/aggregated/testu01_smallcrush_detailed_summary.tsv`
+- `results/aggregated/cross_layer_source_summary_testu01.tsv`
+- `results/aggregated/testu01_environment.txt`
+
+
+## 2026-09-13 — Local experimental scope freeze
+
+The required local experimental scope is now frozen.
+
+Completed local evidence layers include:
+
+- deterministic source generation and reproducibility;
+- precision-sensitive Logistic Map characterization;
+- cellular automata and Chen 4D DCS sources;
+- genomic DNA windows;
+- cryptographic reference streams;
+- basic bitstream metrics;
+- NIST SP 800-90B non-IID estimation;
+- frozen Dieharder screening;
+- targeted TestU01 SmallCrush screening;
+- Ascon-XOF128 conditioning;
+- finite-precision Logistic collapse analysis;
+- source-derived key/nonce propagation;
+- three common AEAD baselines;
+- published DNA-cipher reproduction;
+- local implementation performance;
+- cross-layer source-to-cipher synthesis.
+
+Standalone NIST STS is classified as an optional extension rather
+than required core work. This decision does not treat NIST SP
+800-90B, Dieharder or TestU01 as interchangeable tests. Instead it
+limits further overlapping local randomness-testing work after
+multiple independent evidence layers have already been completed.
+
+No additional large local source-generation campaign is planned
+before HPC.
+
+Remaining required experimental work:
+
+- HPC strong scaling;
+- HPC weak scaling;
+- speedup and parallel efficiency;
+- cluster environment capture;
+- final frozen reproduction;
+- final paper curation.
+
+
+## 2026-09-13 — HPC scaling harness dry-run
+
+The HPC scalability harness was prepared and validated locally
+without executing an actual cluster campaign.
+
+Workloads use deterministic static sharding:
+
+`workload_index mod world_size == rank`.
+
+A two-worker local smoke test confirmed complete and
+non-overlapping assignment of four frozen workloads.
+
+The scaling framework now separates:
+
+- strong scaling with fixed total work;
+- weak scaling with fixed work per task.
+
+Both modes use job-level wall time as the primary timing boundary.
+Per-rank timings are retained for imbalance diagnostics.
+
+The final HPC protocol specifies three timing repetitions per
+scaling point and uses the median wall time for speedup and
+efficiency calculations.
+
+The local dry-run is infrastructure validation only. Its timing
+values are not scientific scalability results because the workload
+is intentionally very small and process-launch overhead can
+dominate execution.
+
+The actual HPC experiment remains pending cluster access.
+
+
+## 2026-09-13 — HPC execution package finalized
+
+The cluster-facing execution package was completed locally.
+
+A cluster preflight script now validates the toolchain, required
+cryptographic and numerical libraries, Git revision/state, Release
+build, complete test suite, runner availability, and optionally the
+Slurm environment.
+
+A campaign submitter was added for frozen strong- and weak-scaling
+experiments. Submission is opt-in: without the explicit `--submit`
+flag it only generates manifests and exact `sbatch` commands.
+
+Strong-scaling plans enforce a fixed total workload and require the
+workload count to divide evenly across every selected task count.
+
+Weak-scaling plans keep the number of workload items per task fixed.
+
+Both modes retain three independent repetitions per scaling point in
+the final protocol.
+
+The local dry-run and submission-plan validation are infrastructure
+tests only and are not treated as HPC performance results.
+
+No additional HPC implementation work is required before cluster
+access. Remaining HPC work consists of environment-specific preflight,
+tiny Slurm smoke tests, actual scaling execution, analysis, and final
+reproduction.

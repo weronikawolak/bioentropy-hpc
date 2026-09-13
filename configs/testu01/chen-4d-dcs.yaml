@@ -1,0 +1,21 @@
+experiment:
+  id: testu01-smallcrush-chen-4d-dcs
+  replicate_id: 0
+  master_seed: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+source:
+  type: chen_4d_dcs
+  output_bits: 1048576
+  parameters:
+    r: 5.0
+    burn_in: 1000
+    extraction: threshold_per_coordinate
+    threshold: 0.5
+    initial_state:
+      x0: 0.1
+      y0: 0.2
+      z0: 0.3
+      w0: 0.4
+conditioning:
+  mode: ascon_xof128
+execution:
+  chunk_bytes: 65536

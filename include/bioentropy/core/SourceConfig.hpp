@@ -86,6 +86,9 @@ struct CellularAutomatonConfig {
     std::uint64_t cells{256};
 };
 
+struct CtrDrbgAes256ReferenceConfig {
+};
+
 struct ChaCha20ReferenceConfig {
     std::uint64_t initial_counter{0};
 };
@@ -115,7 +118,8 @@ using SourceParameters = std::variant<
     Chen4DDcsConfig,
     CellularAutomatonConfig,
     ChaCha20ReferenceConfig,
-    DNASequenceConfig
+    DNASequenceConfig,
+    CtrDrbgAes256ReferenceConfig
 >;
 
 struct SourceConfig {
