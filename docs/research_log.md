@@ -5952,3 +5952,35 @@ Remaining required experimental work:
 - cluster environment capture;
 - final frozen reproduction;
 - final paper curation.
+
+
+## 2026-09-13 — HPC scaling harness dry-run
+
+The HPC scalability harness was prepared and validated locally
+without executing an actual cluster campaign.
+
+Workloads use deterministic static sharding:
+
+`workload_index mod world_size == rank`.
+
+A two-worker local smoke test confirmed complete and
+non-overlapping assignment of four frozen workloads.
+
+The scaling framework now separates:
+
+- strong scaling with fixed total work;
+- weak scaling with fixed work per task.
+
+Both modes use job-level wall time as the primary timing boundary.
+Per-rank timings are retained for imbalance diagnostics.
+
+The final HPC protocol specifies three timing repetitions per
+scaling point and uses the median wall time for speedup and
+efficiency calculations.
+
+The local dry-run is infrastructure validation only. Its timing
+values are not scientific scalability results because the workload
+is intentionally very small and process-launch overhead can
+dominate execution.
+
+The actual HPC experiment remains pending cluster access.
