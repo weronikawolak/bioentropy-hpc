@@ -5910,3 +5910,45 @@ Artifacts:
 - `results/aggregated/testu01_smallcrush_detailed_summary.tsv`
 - `results/aggregated/cross_layer_source_summary_testu01.tsv`
 - `results/aggregated/testu01_environment.txt`
+
+
+## 2026-09-13 — Local experimental scope freeze
+
+The required local experimental scope is now frozen.
+
+Completed local evidence layers include:
+
+- deterministic source generation and reproducibility;
+- precision-sensitive Logistic Map characterization;
+- cellular automata and Chen 4D DCS sources;
+- genomic DNA windows;
+- cryptographic reference streams;
+- basic bitstream metrics;
+- NIST SP 800-90B non-IID estimation;
+- frozen Dieharder screening;
+- targeted TestU01 SmallCrush screening;
+- Ascon-XOF128 conditioning;
+- finite-precision Logistic collapse analysis;
+- source-derived key/nonce propagation;
+- three common AEAD baselines;
+- published DNA-cipher reproduction;
+- local implementation performance;
+- cross-layer source-to-cipher synthesis.
+
+Standalone NIST STS is classified as an optional extension rather
+than required core work. This decision does not treat NIST SP
+800-90B, Dieharder or TestU01 as interchangeable tests. Instead it
+limits further overlapping local randomness-testing work after
+multiple independent evidence layers have already been completed.
+
+No additional large local source-generation campaign is planned
+before HPC.
+
+Remaining required experimental work:
+
+- HPC strong scaling;
+- HPC weak scaling;
+- speedup and parallel efficiency;
+- cluster environment capture;
+- final frozen reproduction;
+- final paper curation.

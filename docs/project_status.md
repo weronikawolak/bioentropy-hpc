@@ -11,7 +11,7 @@ Updated: 2026-09-11
 | 4. Cellular automata | DONE | Rule 30/90, 256/1024 cells |
 | 5. DNA | DONE | 50 genomic windows and paired NIST SP 800-90B units |
 | 6. Hyperchaotic source | DONE | Chen 4D DCS implementation and screening |
-| 7. Statistical stack | MOSTLY DONE | Basic metrics, NIST SP 800-90B, Dieharder and targeted TestU01 SmallCrush complete; standalone NIST STS remains optional depending final scope |
+| 7. Statistical stack | DONE LOCAL | Basic metrics, NIST SP 800-90B, Dieharder and targeted TestU01 SmallCrush complete; standalone NIST STS frozen as an optional extension rather than required core work |
 | 8. Large source screening | DONE LOCAL | Frozen 200-realization RAW campaign complete |
 | 9. Conditioning | DONE | Ascon-XOF128 campaign and targeted collapse conditioning complete |
 | 10. Crypto baselines | DONE | Ascon-AEAD128, ChaCha20-Poly1305, AES-128-GCM and common performance baseline |
@@ -23,7 +23,6 @@ Updated: 2026-09-11
 
 ## Main remaining local work
 
-3. Decide whether standalone NIST STS is required for the final scope.
 4. Curate final paper-ready figures and tables.
 5. Freeze final local protocol/results.
 
@@ -45,3 +44,30 @@ Updated: 2026-09-11
 - Identical source-derived key/nonce material propagates to identical fixed-message AEAD outputs across Ascon-AEAD128, ChaCha20-Poly1305 and AES-128-GCM.
 - Successful authenticated round-trip does not establish secure key generation.
 - Local cipher performance strongly depends on payload size and implementation/platform characteristics.
+
+
+## Local scope freeze
+
+Standalone NIST STS is classified as an optional extension rather
+than required core work.
+
+This is a scope decision, not an equivalence claim:
+
+- NIST SP 800-90B is retained for empirical entropy estimation;
+- Dieharder is retained for broad statistical screening;
+- TestU01 SmallCrush is retained as an independent targeted
+  statistical battery;
+- standalone NIST STS would provide an additional overlapping
+  randomness-testing view but is not required for the frozen
+  local contribution set.
+
+No new large local source-generation or randomness-test campaigns
+are planned before HPC execution unless a concrete validation defect
+is discovered.
+
+The remaining required work is therefore:
+
+- final paper table/figure curation;
+- HPC strong/weak scaling;
+- environment and reproducibility capture on the cluster;
+- final frozen reproduction.
