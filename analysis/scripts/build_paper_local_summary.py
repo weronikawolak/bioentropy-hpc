@@ -42,12 +42,12 @@ def main():
             "source":
                 df["source"],
 
-            "nist_h_mean":
+            "nist90b_h_original_estimate_mean":
                 df[
                     "nist_h_original_mean"
                 ],
 
-            "nist_h_min":
+            "nist90b_h_original_estimate_min":
                 df[
                     "nist_h_original_min"
                 ],
@@ -72,7 +72,7 @@ def main():
                     "testu01_smallcrush_status"
                 ],
 
-            "smallcrush_flags":
+            "smallcrush_suspect_statistics":
                 df[
                     "testu01_smallcrush_suspect_statistics"
                 ],
@@ -101,9 +101,9 @@ def main():
     )
 
     lines = [
-        "| Source | H mean | H min | "
+        "| Source | NIST 90B H_original estimate mean | NIST 90B H_original estimate min | "
         "Dieharder F/W/P | SmallCrush | "
-        "SC flags | RAW unique | "
+        "SmallCrush suspect statistics | RAW unique | "
         "Conditioned unique |",
         "|---|---:|---:|---:|---|---:|---:|---:|",
     ]
@@ -111,13 +111,13 @@ def main():
     for _, row in table.iterrows():
         lines.append(
             f"| {row['source']} "
-            f"| {row['nist_h_mean']:.6f} "
-            f"| {row['nist_h_min']:.6f} "
+            f"| {row['nist90b_h_original_estimate_mean']:.6f} "
+            f"| {row['nist90b_h_original_estimate_min']:.6f} "
             f"| {int(row['dieharder_failed'])}/"
             f"{int(row['dieharder_weak'])}/"
             f"{int(row['dieharder_passed'])} "
             f"| {row['smallcrush']} "
-            f"| {int(row['smallcrush_flags'])} "
+            f"| {int(row['smallcrush_suspect_statistics'])} "
             f"| {int(row['raw_material_unique'])}/20 "
             f"| {int(row['conditioned_material_unique'])}/20 |"
         )

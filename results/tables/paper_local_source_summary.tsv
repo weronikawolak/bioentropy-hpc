@@ -1,0 +1,11 @@
+source	nist90b_h_original_estimate_mean	nist90b_h_original_estimate_min	dieharder_failed	dieharder_weak	dieharder_passed	smallcrush	smallcrush_suspect_statistics	raw_material_unique	conditioned_material_unique
+chacha20	0.8491237	0.809165	0	5	15	PASSED	0	20	20
+chen-4d-dcs	0.85573385	0.817323	0	11	9	SUSPECT	4	20	20
+logistic-fixed_q3_29	2.3e-06	2e-06	20	0	0	SUSPECT	15	20	20
+logistic-float32	1.6999999999999998e-06	0.0	20	0	0	SUSPECT	15	20	20
+logistic-float64	0.8541956	0.822919	5	5	10	SUSPECT	5	20	20
+logistic-mpfr_256	0.85076925	0.813907	0	5	15	PASSED	0	20	20
+rule30-cells1024	0.8590858	0.812628	0	7	13	SUSPECT	5	20	20
+rule30-cells256	0.83901885	0.679895	20	0	0	SUSPECT	5	20	20
+rule90-cells1024	0.0	0.0	20	0	0	SUSPECT	15	20	20
+rule90-cells256	0.0	0.0	20	0	0	SUSPECT	15	20	20

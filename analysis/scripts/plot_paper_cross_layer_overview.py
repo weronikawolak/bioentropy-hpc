@@ -40,7 +40,7 @@ ax.scatter(
     df["nist_h_original_mean"],
     y,
     marker="o",
-    label="NIST H_original mean",
+    label="NIST SP 800-90B H_original estimate (mean)",
 )
 
 ax.scatter(
@@ -57,7 +57,7 @@ for i, row in df.iterrows():
             "testu01_smallcrush_status"
         ] == "PASSED"
         else (
-            "SC flag="
+            "SC suspect statistics="
             + str(
                 int(
                     row[

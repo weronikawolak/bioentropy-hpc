@@ -143,6 +143,24 @@ int main(
                 );
 
         /*
+         * This adapter exposes the source bytes
+         * directly to TestU01. It intentionally
+         * does not execute the framework
+         * conditioning pipeline.
+         */
+        if (
+            config.conditioning.mode
+            != bioentropy::
+                ConditioningMode::Raw
+        ) {
+            throw std::invalid_argument(
+                "TestU01 source adapter requires "
+                "conditioning.mode=raw"
+            );
+        }
+
+
+        /*
          * A frozen DNA window is finite.
          *
          * SmallCrush requires far more data than one

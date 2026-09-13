@@ -11,4 +11,4 @@ source:
 execution:
   chunk_bytes: 65536
 conditioning:
-  mode: ascon_xof128
+  mode: raw

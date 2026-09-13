@@ -6014,3 +6014,40 @@ No additional HPC implementation work is required before cluster
 access. Remaining HPC work consists of environment-specific preflight,
 tiny Slurm smoke tests, actual scaling execution, analysis, and final
 reproduction.
+
+
+## 2026-09-13 — TestU01 provenance repair
+
+A provenance inconsistency was identified in the frozen TestU01
+SmallCrush subset.
+
+Seven frozen YAML configurations inherited
+`conditioning.mode: ascon_xof128` from historical source templates,
+although the TestU01 adapter consumed `RandomnessSource` output
+directly and did not execute the conditioning pipeline.
+
+The affected frozen configurations were normalized to:
+
+`conditioning.mode: raw`
+
+This was a metadata/provenance repair and did not alter the
+bitstreams that had been evaluated by SmallCrush. The battery was
+therefore not rerun.
+
+The original and repaired configuration SHA-256 values are retained
+in:
+
+`results/aggregated/testu01_provenance_repair.tsv`
+
+The adapter now rejects any future non-RAW configuration before
+starting TestU01.
+
+The subset generator was also changed from heuristic configuration
+discovery to an explicit frozen mapping of 11 configurations.
+
+SmallCrush classifications remained unchanged after rebuilding the
+derived summaries:
+
+- PASSED: Logistic MPFR-256, ChaCha20, AES-256 CTR_DRBG;
+- SUSPECT: the remaining eight frozen source configurations;
+- total reported suspect statistics: 79.

@@ -1,0 +1,11 @@
+source	nist_h_original_mean	nist_h_original_min	nist_h_original_max	dieharder_failed_reps	dieharder_weak_reps	dieharder_passed_reps	dieharder_fail_fraction	raw_material_unique	raw_material_collisions	conditioned_material_unique	conditioned_material_collisions	raw_ascon_key_collisions	raw_chacha_key_collisions	raw_aes_key_collisions	conditioned_ascon_key_collisions	conditioned_chacha_key_collisions	conditioned_aes_key_collisions	raw_ascon_ciphertext_collisions	raw_chacha_ciphertext_collisions	raw_aes_ciphertext_collisions	collapse_pre_raw_unique	collapse_pre_conditioned_unique	collapse_post_raw_unique	collapse_post_conditioned_unique	testu01_smallcrush_status	testu01_smallcrush_suspect_statistics	testu01_smallcrush_words_consumed	testu01_smallcrush_bytes_consumed
+chacha20	0.8491237	0.809165	0.901173	0	5	15	0.0	20	0	20	0	0	0	0	0	0	0	0	0	0					PASSED	0	226910855	907643420
+chen-4d-dcs	0.85573385	0.817323	0.882912	0	11	9	0.0	20	0	20	0	0	0	0	0	0	0	0	0	0					SUSPECT	4	226249260	904997040
+logistic-fixed_q3_29	2.3e-06	2e-06	3e-06	20	0	0	1.0	20	0	20	0	0	0	0	0	0	0	0	0	0					SUSPECT	15	245039251	980157004
+logistic-float32	1.6999999999999998e-06	0.0	2e-06	20	0	0	1.0	20	0	20	0	0	0	1	0	0	0	0	0	1					SUSPECT	15	227924937	911699748
+logistic-float64	0.8541956	0.822919	0.889318	5	5	10	0.25	20	0	20	0	0	0	0	0	0	0	0	0	0	3.0	3.0	1.0	1.0	SUSPECT	5	227069854	908279416
+logistic-mpfr_256	0.85076925	0.813907	0.912496	0	5	15	0.0	20	0	20	0	0	0	0	0	0	0	0	0	0					PASSED	0	226898159	907592636
+rule30-cells1024	0.8590858	0.812628	0.916871	0	7	13	0.0	20	0	20	0	0	0	0	0	0	0	0	0	0					SUSPECT	5	226511364	906045456
+rule30-cells256	0.83901885	0.679895	0.943334	20	0	0	1.0	20	0	20	0	0	0	0	0	0	0	0	0	0					SUSPECT	5	226667038	906668152
+rule90-cells1024	0.0	0.0	0.0	20	0	0	1.0	20	0	20	0	0	0	0	0	0	0	0	0	0					SUSPECT	15	181700000	726800000
+rule90-cells256	0.0	0.0	0.0	20	0	0	1.0	20	0	20	0	0	0	0	0	0	0	0	0	0					SUSPECT	15	181700000	726800000

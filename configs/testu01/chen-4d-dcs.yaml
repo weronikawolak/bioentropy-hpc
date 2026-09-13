@@ -16,6 +16,6 @@ source:
       z0: 0.3
       w0: 0.4
 conditioning:
-  mode: ascon_xof128
+  mode: raw
 execution:
   chunk_bytes: 65536

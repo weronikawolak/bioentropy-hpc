@@ -1,0 +1,80 @@
+source	replicate_id	battery	test_number	test_name	pvalue_text	raw_line
+logistic-float32	0	SmallCrush	1	BirthdaySpacings	eps	1  BirthdaySpacings                 eps
+logistic-float32	0	SmallCrush	2	Collision	eps	2  Collision                        eps
+logistic-float32	0	SmallCrush	3	Gap	eps	3  Gap                              eps
+logistic-float32	0	SmallCrush	4	SimpPoker	eps	4  SimpPoker                        eps
+logistic-float32	0	SmallCrush	5	CouponCollector	eps	5  CouponCollector                  eps
+logistic-float32	0	SmallCrush	6	MaxOft	eps	6  MaxOft                           eps
+logistic-float32	0	SmallCrush	6	MaxOft AD	1 - eps1	6  MaxOft AD                      1 - eps1
+logistic-float32	0	SmallCrush	7	WeightDistrib	eps	7  WeightDistrib                    eps
+logistic-float32	0	SmallCrush	8	MatrixRank	eps	8  MatrixRank                       eps
+logistic-float32	0	SmallCrush	9	HammingIndep	eps	9  HammingIndep                     eps
+logistic-float32	0	SmallCrush	10	RandomWalk1 H	eps	10  RandomWalk1 H                    eps
+logistic-float32	0	SmallCrush	10	RandomWalk1 M	eps	10  RandomWalk1 M                    eps
+logistic-float32	0	SmallCrush	10	RandomWalk1 J	eps	10  RandomWalk1 J                    eps
+logistic-float32	0	SmallCrush	10	RandomWalk1 R	eps	10  RandomWalk1 R                    eps
+logistic-float32	0	SmallCrush	10	RandomWalk1 C	eps	10  RandomWalk1 C                    eps
+logistic-float64	0	SmallCrush	3	Gap	eps	3  Gap                              eps
+logistic-float64	0	SmallCrush	5	CouponCollector	5.8e-11	5  CouponCollector                5.8e-11
+logistic-float64	0	SmallCrush	6	MaxOft	eps	6  MaxOft                           eps
+logistic-float64	0	SmallCrush	10	RandomWalk1 H	1.8e-7	10  RandomWalk1 H                   1.8e-7
+logistic-float64	0	SmallCrush	10	RandomWalk1 M	5.3e-4	10  RandomWalk1 M                   5.3e-4
+logistic-fixed_q3_29	0	SmallCrush	1	BirthdaySpacings	eps	1  BirthdaySpacings                 eps
+logistic-fixed_q3_29	0	SmallCrush	2	Collision	eps	2  Collision                        eps
+logistic-fixed_q3_29	0	SmallCrush	3	Gap	eps	3  Gap                              eps
+logistic-fixed_q3_29	0	SmallCrush	4	SimpPoker	eps	4  SimpPoker                        eps
+logistic-fixed_q3_29	0	SmallCrush	5	CouponCollector	eps	5  CouponCollector                  eps
+logistic-fixed_q3_29	0	SmallCrush	6	MaxOft	eps	6  MaxOft                           eps
+logistic-fixed_q3_29	0	SmallCrush	6	MaxOft AD	1 - eps1	6  MaxOft AD                      1 - eps1
+logistic-fixed_q3_29	0	SmallCrush	7	WeightDistrib	eps	7  WeightDistrib                    eps
+logistic-fixed_q3_29	0	SmallCrush	8	MatrixRank	eps	8  MatrixRank                       eps
+logistic-fixed_q3_29	0	SmallCrush	9	HammingIndep	eps	9  HammingIndep                     eps
+logistic-fixed_q3_29	0	SmallCrush	10	RandomWalk1 H	eps	10  RandomWalk1 H                    eps
+logistic-fixed_q3_29	0	SmallCrush	10	RandomWalk1 M	eps	10  RandomWalk1 M                    eps
+logistic-fixed_q3_29	0	SmallCrush	10	RandomWalk1 J	eps	10  RandomWalk1 J                    eps
+logistic-fixed_q3_29	0	SmallCrush	10	RandomWalk1 R	eps	10  RandomWalk1 R                    eps
+logistic-fixed_q3_29	0	SmallCrush	10	RandomWalk1 C	eps	10  RandomWalk1 C                    eps
+chen-4d-dcs	0	SmallCrush	6	MaxOft AD | 1 -	2.9e-6	6  MaxOft AD                      1 -  2.9e-6
+chen-4d-dcs	0	SmallCrush	7	WeightDistrib	2.8e-5	7  WeightDistrib                   2.8e-5
+chen-4d-dcs	0	SmallCrush	10	RandomWalk1 H	9.8e-11	10  RandomWalk1 H                  9.8e-11
+chen-4d-dcs	0	SmallCrush	10	RandomWalk1 J	3.9e-5	10  RandomWalk1 J                   3.9e-5
+rule30-cells256	0	SmallCrush	3	Gap	eps	3  Gap                              eps
+rule30-cells256	0	SmallCrush	4	SimpPoker	eps	4  SimpPoker                        eps
+rule30-cells256	0	SmallCrush	5	CouponCollector	eps	5  CouponCollector                  eps
+rule30-cells256	0	SmallCrush	7	WeightDistrib	eps	7  WeightDistrib                    eps
+rule30-cells256	0	SmallCrush	9	HammingIndep	eps	9  HammingIndep                     eps
+rule30-cells1024	0	SmallCrush	3	Gap	eps	3  Gap                              eps
+rule30-cells1024	0	SmallCrush	4	SimpPoker	eps	4  SimpPoker                        eps
+rule30-cells1024	0	SmallCrush	5	CouponCollector	eps	5  CouponCollector                  eps
+rule30-cells1024	0	SmallCrush	7	WeightDistrib	eps	7  WeightDistrib                    eps
+rule30-cells1024	0	SmallCrush	9	HammingIndep	eps	9  HammingIndep                     eps
+rule90-cells256	0	SmallCrush	1	BirthdaySpacings	eps	1  BirthdaySpacings                 eps
+rule90-cells256	0	SmallCrush	2	Collision	eps	2  Collision                        eps
+rule90-cells256	0	SmallCrush	3	Gap	eps	3  Gap                              eps
+rule90-cells256	0	SmallCrush	4	SimpPoker	eps	4  SimpPoker                        eps
+rule90-cells256	0	SmallCrush	5	CouponCollector	eps	5  CouponCollector                  eps
+rule90-cells256	0	SmallCrush	6	MaxOft	eps	6  MaxOft                           eps
+rule90-cells256	0	SmallCrush	6	MaxOft AD	1 - eps1	6  MaxOft AD                      1 - eps1
+rule90-cells256	0	SmallCrush	7	WeightDistrib	eps	7  WeightDistrib                    eps
+rule90-cells256	0	SmallCrush	8	MatrixRank	eps	8  MatrixRank                       eps
+rule90-cells256	0	SmallCrush	9	HammingIndep	eps	9  HammingIndep                     eps
+rule90-cells256	0	SmallCrush	10	RandomWalk1 H	eps	10  RandomWalk1 H                    eps
+rule90-cells256	0	SmallCrush	10	RandomWalk1 M	eps	10  RandomWalk1 M                    eps
+rule90-cells256	0	SmallCrush	10	RandomWalk1 J	eps	10  RandomWalk1 J                    eps
+rule90-cells256	0	SmallCrush	10	RandomWalk1 R	eps	10  RandomWalk1 R                    eps
+rule90-cells256	0	SmallCrush	10	RandomWalk1 C	eps	10  RandomWalk1 C                    eps
+rule90-cells1024	0	SmallCrush	1	BirthdaySpacings	eps	1  BirthdaySpacings                 eps
+rule90-cells1024	0	SmallCrush	2	Collision	eps	2  Collision                        eps
+rule90-cells1024	0	SmallCrush	3	Gap	eps	3  Gap                              eps
+rule90-cells1024	0	SmallCrush	4	SimpPoker	eps	4  SimpPoker                        eps
+rule90-cells1024	0	SmallCrush	5	CouponCollector	eps	5  CouponCollector                  eps
+rule90-cells1024	0	SmallCrush	6	MaxOft	eps	6  MaxOft                           eps
+rule90-cells1024	0	SmallCrush	6	MaxOft AD	1 - eps1	6  MaxOft AD                      1 - eps1
+rule90-cells1024	0	SmallCrush	7	WeightDistrib	eps	7  WeightDistrib                    eps
+rule90-cells1024	0	SmallCrush	8	MatrixRank	eps	8  MatrixRank                       eps
+rule90-cells1024	0	SmallCrush	9	HammingIndep	eps	9  HammingIndep                     eps
+rule90-cells1024	0	SmallCrush	10	RandomWalk1 H	eps	10  RandomWalk1 H                    eps
+rule90-cells1024	0	SmallCrush	10	RandomWalk1 M	eps	10  RandomWalk1 M                    eps
+rule90-cells1024	0	SmallCrush	10	RandomWalk1 J	eps	10  RandomWalk1 J                    eps
+rule90-cells1024	0	SmallCrush	10	RandomWalk1 R	eps	10  RandomWalk1 R                    eps
+rule90-cells1024	0	SmallCrush	10	RandomWalk1 C	eps	10  RandomWalk1 C                    eps

@@ -1,0 +1,12 @@
+source	replicate_id	battery	execution_returncode	testu01_status	all_tests_passed	pvalue_outside_notice	words_consumed	bytes_consumed	config_sha256	log
+logistic-float32	0	SmallCrush	0	SUSPECT	0	1	227924937	911699748	6b7c6dc2b209dcbf2389d7d8a6c31b627cd8be3a15e4c9eed88f03ca6c406fa5	results/raw/testu01/smallcrush_logistic-float32_rep000.log
+logistic-float64	0	SmallCrush	0	SUSPECT	0	1	227069854	908279416	1afecd16f66c548199b93a59ed137a5cda868497db883131173adfa24d8e462e	results/raw/testu01/smallcrush_logistic-float64_rep000.log
+logistic-fixed_q3_29	0	SmallCrush	0	SUSPECT	0	1	245039251	980157004	cd7983c29188a9fd8a1c19c92aac02a7851d1d0c1b51877f55d23d110441fdf0	results/raw/testu01/smallcrush_logistic-fixed_q3_29_rep000.log
+logistic-mpfr_256	0	SmallCrush	0	PASSED	1	0	226898159	907592636	f8108f1d0209ea1133b9268c0a956eabed729a7ff572fe5e27d9d8fc4bf93b7a	results/raw/testu01/smallcrush_logistic-mpfr_256_rep000.log
+chen-4d-dcs	0	SmallCrush	0	SUSPECT	0	1	226249260	904997040	86e58c3f0c474222d724648f6c4f6368690f6e42b58e206be87ce5f3b6f9febe	results/raw/testu01/smallcrush_chen-4d-dcs_rep000.log
+rule30-cells256	0	SmallCrush	0	SUSPECT	0	1	226667038	906668152	46da24d3bcda1d268710d63474108b5a2d2ab640ac14309b6f8ca663efde8062	results/raw/testu01/smallcrush_rule30-cells256_rep000.log
+rule30-cells1024	0	SmallCrush	0	SUSPECT	0	1	226511364	906045456	705175b26680f8b1cbef7118ecd53a82462f22655da943ebbaaa5cfaf8031ec3	results/raw/testu01/smallcrush_rule30-cells1024_rep000.log
+rule90-cells256	0	SmallCrush	0	SUSPECT	0	1	181700000	726800000	1f84282f7c389b7c32b9bd421fd0280a07423fba33b956d5731272d31004ebce	results/raw/testu01/smallcrush_rule90-cells256_rep000.log
+rule90-cells1024	0	SmallCrush	0	SUSPECT	0	1	181700000	726800000	71d2daeb35d095c920707fcc73f3a93c79d22c405d60cd0be596dba236e3a931	results/raw/testu01/smallcrush_rule90-cells1024_rep000.log
+chacha20	0	SmallCrush	0	PASSED	1	0	226910855	907643420	e83d00a81ac528275154fc2f7403158f9202a753025afed99cbf3f74444c51c6	results/raw/testu01/smallcrush_chacha20_rep000.log
+ctr-drbg-aes256	0	SmallCrush	0	PASSED	1	0	226981072	907924288	2e06467245ba671e9615073cd4343c14beb3d2887e1335573d90b396cd752449	results/raw/testu01/smallcrush_ctr-drbg-aes256_rep000.log

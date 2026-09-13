@@ -1,16 +1,13 @@
 #!/usr/bin/env python3
 
 from pathlib import Path
+import csv
 import hashlib
-import json
 
 import yaml
 
 
 ROOT = Path(__file__).resolve().parents[2]
-
-CONFIG_ROOT = ROOT / "configs"
-OUTPUT_DIR = CONFIG_ROOT / "testu01"
 
 MANIFEST = (
     ROOT
@@ -28,59 +25,143 @@ MASTER_SEED = (
 
 SOURCES = [
     {
-        "label": "logistic-float32",
-        "type": "logistic",
-        "tokens": ["float32"],
+        "label":
+            "logistic-float32",
+        "type":
+            "logistic",
+        "config":
+            "configs/testu01/"
+            "logistic-float32.yaml",
+        "historical_template":
+            "configs/generated/"
+            "dieharder-campaign-ascon-smoke/"
+            "logistic-float32/rep000.yaml",
     },
     {
-        "label": "logistic-float64",
-        "type": "logistic",
-        "tokens": ["float64"],
+        "label":
+            "logistic-float64",
+        "type":
+            "logistic",
+        "config":
+            "configs/testu01/"
+            "logistic-float64.yaml",
+        "historical_template":
+            "configs/generated/"
+            "dieharder-campaign-ascon-smoke/"
+            "logistic-float64/rep000.yaml",
     },
     {
-        "label": "logistic-fixed_q3_29",
-        "type": "logistic",
-        "tokens": ["fixed_q3_29"],
+        "label":
+            "logistic-fixed_q3_29",
+        "type":
+            "logistic",
+        "config":
+            "configs/testu01/"
+            "logistic-fixed_q3_29.yaml",
+        "historical_template":
+            "configs/generated/"
+            "dieharder-campaign-ascon-smoke/"
+            "logistic-fixed_q3_29/rep000.yaml",
     },
     {
-        "label": "logistic-mpfr_256",
-        "type": "logistic",
-        "tokens": ["mpfr_256"],
+        "label":
+            "logistic-mpfr_256",
+        "type":
+            "logistic",
+        "config":
+            "configs/testu01/"
+            "logistic-mpfr_256.yaml",
+        "historical_template":
+            "configs/generated/"
+            "dieharder-campaign-ascon-smoke/"
+            "logistic-mpfr_256/rep000.yaml",
     },
     {
-        "label": "chen-4d-dcs",
-        "type": "chen_4d_dcs",
-        "tokens": [],
+        "label":
+            "chen-4d-dcs",
+        "type":
+            "chen_4d_dcs",
+        "config":
+            "configs/testu01/"
+            "chen-4d-dcs.yaml",
+        "historical_template":
+            "configs/generated/"
+            "chen-4d-dcs-smoke/"
+            "chen-4d-dcs-ascon.yaml",
     },
     {
-        "label": "rule30-cells256",
-        "type": "cellular_automaton",
-        "tokens": ["30", "256"],
+        "label":
+            "rule30-cells256",
+        "type":
+            "cellular_automaton",
+        "config":
+            "configs/testu01/"
+            "rule30-cells256.yaml",
+        "historical_template":
+            "configs/campaigns/"
+            "ca_rule30_smoke.yaml",
     },
     {
-        "label": "rule30-cells1024",
-        "type": "cellular_automaton",
-        "tokens": ["30", "1024"],
+        "label":
+            "rule30-cells1024",
+        "type":
+            "cellular_automaton",
+        "config":
+            "configs/testu01/"
+            "rule30-cells1024.yaml",
+        "historical_template":
+            "configs/generated/"
+            "conditioning/ascon_xof128/"
+            "ca-rule30-cells1024_rep0000.yaml",
     },
     {
-        "label": "rule90-cells256",
-        "type": "cellular_automaton",
-        "tokens": ["90", "256"],
+        "label":
+            "rule90-cells256",
+        "type":
+            "cellular_automaton",
+        "config":
+            "configs/testu01/"
+            "rule90-cells256.yaml",
+        "historical_template":
+            "configs/campaigns/"
+            "ca_rule90_smoke.yaml",
     },
     {
-        "label": "rule90-cells1024",
-        "type": "cellular_automaton",
-        "tokens": ["90", "1024"],
+        "label":
+            "rule90-cells1024",
+        "type":
+            "cellular_automaton",
+        "config":
+            "configs/testu01/"
+            "rule90-cells1024.yaml",
+        "historical_template":
+            "configs/generated/"
+            "conditioning/ascon_xof128/"
+            "ca-rule90-cells1024_rep0000.yaml",
     },
     {
-        "label": "chacha20",
-        "type": "chacha20_reference",
-        "tokens": [],
+        "label":
+            "chacha20",
+        "type":
+            "chacha20_reference",
+        "config":
+            "configs/testu01/"
+            "chacha20.yaml",
+        "historical_template":
+            "configs/campaigns/"
+            "chacha20_reference_smoke.yaml",
     },
     {
-        "label": "ctr-drbg-aes256",
-        "type": "ctr_drbg_aes256_reference",
-        "tokens": [],
+        "label":
+            "ctr-drbg-aes256",
+        "type":
+            "ctr_drbg_aes256_reference",
+        "config":
+            "configs/testu01/"
+            "ctr-drbg-aes256.yaml",
+        "historical_template":
+            "configs/campaigns/"
+            "ctr_drbg_aes256_reference_smoke.yaml",
     },
 ]
 
@@ -91,266 +172,134 @@ def sha256(path):
     ).hexdigest()
 
 
-def flatten_values(value):
-    if isinstance(value, dict):
-        for item in value.values():
-            yield from flatten_values(item)
+def main():
+    rows = []
 
-    elif isinstance(value, list):
-        for item in value:
-            yield from flatten_values(item)
+    for item in SOURCES:
+        path = (
+            ROOT
+            / item["config"]
+        )
 
-    else:
-        yield str(value).lower()
+        if not path.is_file():
+            raise RuntimeError(
+                f"Missing frozen config: {path}"
+            )
 
-
-def load_yaml(path):
-    try:
-        value = yaml.safe_load(
+        doc = yaml.safe_load(
             path.read_text(
                 encoding="utf-8"
             )
         )
-    except Exception:
-        return None
 
-    if not isinstance(value, dict):
-        return None
-
-    return value
-
-
-def source_type(doc):
-    source = doc.get("source")
-
-    if not isinstance(source, dict):
-        return None
-
-    return source.get("type")
-
-
-def candidate_matches(
-    path,
-    document,
-    definition,
-):
-    if (
-        source_type(document)
-        != definition["type"]
-    ):
-        return False
-
-    haystack = " ".join(
-        flatten_values(
-            document.get(
-                "source",
-                {},
-            )
-        )
-    )
-
-    return all(
-        token.lower() in haystack
-        for token
-        in definition["tokens"]
-    )
-
-
-def main():
-    OUTPUT_DIR.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    MANIFEST.parent.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    candidates = []
-
-    for path in sorted(
-        CONFIG_ROOT.rglob("*.yaml")
-    ):
-        if OUTPUT_DIR in path.parents:
-            continue
-
-        lower = str(path).lower()
-
-        if "testu01" in lower:
-            continue
-
-        document = load_yaml(path)
-
-        if document is None:
-            continue
-
-        candidates.append(
-            (path, document)
-        )
-
-    rows = []
-
-    for definition in SOURCES:
-        matches = [
-            (path, doc)
-            for path, doc
-            in candidates
-            if candidate_matches(
-                path,
-                doc,
-                definition,
-            )
-        ]
-
-        if not matches:
-            raise RuntimeError(
-                "No configuration candidate for "
-                + definition["label"]
-            )
-
-        #
-        # Frozen deterministic selection rule:
-        # lexicographically first matching existing config.
-        #
-        matches.sort(
-            key=lambda x: str(x[0])
-        )
-
-        template, document = matches[0]
-
-        document = json.loads(
-            json.dumps(document)
-        )
-
-        experiment = document.setdefault(
+        experiment = doc.get(
             "experiment",
-            {},
+            {}
         )
 
-        experiment["id"] = (
-            "testu01-smallcrush-"
-            + definition["label"]
+        source = doc.get(
+            "source",
+            {}
         )
 
-        experiment["replicate_id"] = 0
-
-        experiment["master_seed"] = (
-            MASTER_SEED
+        conditioning = doc.get(
+            "conditioning",
+            {}
         )
 
-        source = document["source"]
-
-        #
-        # SmallCrush controls consumption itself.
-        # This field only needs to remain a valid
-        # experiment configuration.
-        #
-        source["output_bits"] = 1048576
-
-        output = (
-            OUTPUT_DIR
-            / (
-                definition["label"]
-                + ".yaml"
+        if (
+            source.get("type")
+            != item["type"]
+        ):
+            raise RuntimeError(
+                f"{item['label']}: "
+                "unexpected source type"
             )
-        )
 
-        output.write_text(
-            yaml.safe_dump(
-                document,
-                sort_keys=False,
-            ),
-            encoding="utf-8",
-        )
+        if (
+            experiment.get(
+                "replicate_id"
+            )
+            != 0
+        ):
+            raise RuntimeError(
+                f"{item['label']}: "
+                "replicate_id must be 0"
+            )
+
+        if (
+            experiment.get(
+                "master_seed"
+            )
+            != MASTER_SEED
+        ):
+            raise RuntimeError(
+                f"{item['label']}: "
+                "unexpected master seed"
+            )
+
+        if (
+            conditioning.get(
+                "mode",
+                "raw",
+            )
+            != "raw"
+        ):
+            raise RuntimeError(
+                f"{item['label']}: "
+                "TestU01 frozen config "
+                "must be raw"
+            )
 
         rows.append(
             {
                 "label":
-                    definition["label"],
+                    item["label"],
                 "source_type":
-                    definition["type"],
+                    item["type"],
                 "replicate_id":
                     0,
                 "master_seed":
                     MASTER_SEED,
                 "template":
-                    str(
-                        template.relative_to(
-                            ROOT
-                        )
-                    ),
+                    item[
+                        "historical_template"
+                    ],
                 "config":
-                    str(
-                        output.relative_to(
-                            ROOT
-                        )
-                    ),
+                    item["config"],
                 "config_sha256":
-                    sha256(output),
+                    sha256(path),
             }
         )
 
-        print()
         print(
-            definition["label"]
-        )
-        print(
-            "  template:",
-            template.relative_to(ROOT),
-        )
-        print(
-            "  frozen  :",
-            output.relative_to(ROOT),
+            f"PASS: {item['label']}"
         )
 
-        if len(matches) > 1:
-            print(
-                "  candidates:",
-                len(matches),
-                "(lexicographically first frozen)",
-            )
-
-    columns = [
-        "label",
-        "source_type",
-        "replicate_id",
-        "master_seed",
-        "template",
-        "config",
-        "config_sha256",
-    ]
+    columns = list(
+        rows[0].keys()
+    )
 
     with MANIFEST.open(
         "w",
         encoding="utf-8",
     ) as handle:
-        handle.write(
-            "\t".join(columns)
-            + "\n"
+        writer = csv.DictWriter(
+            handle,
+            fieldnames=columns,
+            delimiter="\t",
+            lineterminator="\n",
         )
 
-        for row in rows:
-            handle.write(
-                "\t".join(
-                    str(row[column])
-                    for column in columns
-                )
-                + "\n"
-            )
+        writer.writeheader()
+        writer.writerows(rows)
 
     print()
     print(
-        "PASSED: frozen TestU01 subset prepared"
+        "PASSED: 11 explicit frozen "
+        "TestU01 configs validated"
     )
-    print(
-        "sources:",
-        len(rows),
-    )
-    print(
-        "manifest:",
-        MANIFEST.relative_to(ROOT),
-    )
+    print("Manifest:", MANIFEST)
 
 
 if __name__ == "__main__":
