@@ -5854,3 +5854,59 @@ Validation covers:
 As with the ChaCha20 reference source, CTR_DRBG is used as a
 deterministic cryptographic reference stream and not as evidence of
 fresh physical entropy.
+
+## 2026-09-13 — Targeted TestU01 SmallCrush screening
+
+A targeted TestU01 SmallCrush campaign was performed on one
+pre-specified deterministic realization per non-finite generator.
+
+The frozen subset contained 11 generators:
+
+- four Logistic Map arithmetic variants;
+- Chen 4D DCS;
+- Rule 30 at 256 and 1024 cells;
+- Rule 90 at 256 and 1024 cells;
+- ChaCha20 reference;
+- AES-256 CTR_DRBG reference.
+
+Finite DNA windows were intentionally excluded because repeating a
+genomic window solely to satisfy TestU01 data requirements would
+introduce artificial periodicity.
+
+SmallCrush completed successfully for all 11 configurations.
+
+Generators for which TestU01 reported no p-values outside its
+SmallCrush acceptance reporting interval:
+
+logistic-mpfr_256, chacha20, ctr-drbg-aes256.
+
+Generators for which at least one SmallCrush statistic was flagged:
+
+logistic-float32, logistic-float64, logistic-fixed_q3_29, chen-4d-dcs, rule30-cells256, rule30-cells1024, rule90-cells256, rule90-cells1024.
+
+These results are interpreted as targeted statistical screening of
+one frozen realization per generator. They are not interpreted as
+entropy estimates, security proofs, or estimates of population-level
+failure prevalence.
+
+Individual SmallCrush statistics are not treated as independent
+observations and are not combined into a synthetic randomness score.
+
+The cryptographic reference generators ChaCha20 and AES-256 CTR_DRBG
+both completed SmallCrush without reported suspect p-values in their
+frozen realizations.
+
+Logistic MPFR-256 also completed the battery without reported suspect
+p-values, while the lower-precision Logistic variants were flagged.
+This is consistent with the broader observation that finite arithmetic
+can materially change deterministic chaotic-generator behavior, while
+not establishing cryptographic unpredictability or fresh entropy.
+
+Artifacts:
+
+- `results/aggregated/testu01_smallcrush_subset_manifest.tsv`
+- `results/aggregated/testu01_smallcrush_summary.tsv`
+- `results/aggregated/testu01_smallcrush_suspect_tests.tsv`
+- `results/aggregated/testu01_smallcrush_detailed_summary.tsv`
+- `results/aggregated/cross_layer_source_summary_testu01.tsv`
+- `results/aggregated/testu01_environment.txt`

@@ -529,3 +529,61 @@ add_test(
     NAME ctr-drbg-aes256-reference-source-test
     COMMAND ctr-drbg-aes256-reference-source-test
 )
+
+# ------------------------------------------------------------
+# TestU01 SmallCrush source adapter
+# ------------------------------------------------------------
+
+find_path(
+    TESTU01_INCLUDE_DIR
+    NAMES testu01/bbattery.h
+)
+
+find_library(
+    TESTU01_LIBRARY
+    NAMES testu01
+)
+
+find_library(
+    TESTU01_PROBDIST_LIBRARY
+    NAMES testu01probdist
+)
+
+find_library(
+    TESTU01_MYLIB_LIBRARY
+    NAMES testu01mylib
+)
+
+if (
+    TESTU01_INCLUDE_DIR
+    AND TESTU01_LIBRARY
+    AND TESTU01_PROBDIST_LIBRARY
+    AND TESTU01_MYLIB_LIBRARY
+)
+    add_executable(
+        testu01-smallcrush-source
+        src/testu01/smallcrush_source.cpp
+    )
+
+    target_include_directories(
+        testu01-smallcrush-source
+        PRIVATE
+            ${TESTU01_INCLUDE_DIR}
+    )
+
+    target_link_libraries(
+        testu01-smallcrush-source
+        PRIVATE
+            bioentropy_core
+            ${TESTU01_LIBRARY}
+            ${TESTU01_PROBDIST_LIBRARY}
+            ${TESTU01_MYLIB_LIBRARY}
+            m
+    )
+else()
+    message(
+        WARNING
+        "TestU01 not found; "
+        "testu01-smallcrush-source disabled"
+    )
+endif()

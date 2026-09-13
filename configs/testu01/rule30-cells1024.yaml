@@ -1,0 +1,14 @@
+experiment:
+  id: testu01-smallcrush-rule30-cells1024
+  replicate_id: 0
+  master_seed: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+source:
+  type: cellular_automaton
+  output_bits: 1048576
+  parameters:
+    rule: 30
+    cells: 1024
+execution:
+  chunk_bytes: 65536
+conditioning:
+  mode: ascon_xof128

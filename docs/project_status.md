@@ -11,7 +11,7 @@ Updated: 2026-09-11
 | 4. Cellular automata | DONE | Rule 30/90, 256/1024 cells |
 | 5. DNA | DONE | 50 genomic windows and paired NIST SP 800-90B units |
 | 6. Hyperchaotic source | DONE | Chen 4D DCS implementation and screening |
-| 7. Statistical stack | PARTIAL | Basic metrics, NIST SP 800-90B and Dieharder complete; TestU01 remains; standalone NIST STS optional/remaining depending final scope |
+| 7. Statistical stack | MOSTLY DONE | Basic metrics, NIST SP 800-90B, Dieharder and targeted TestU01 SmallCrush complete; standalone NIST STS remains optional depending final scope |
 | 8. Large source screening | DONE LOCAL | Frozen 200-realization RAW campaign complete |
 | 9. Conditioning | DONE | Ascon-XOF128 campaign and targeted collapse conditioning complete |
 | 10. Crypto baselines | DONE | Ascon-AEAD128, ChaCha20-Poly1305, AES-128-GCM and common performance baseline |
@@ -23,7 +23,6 @@ Updated: 2026-09-11
 
 ## Main remaining local work
 
-2. Add targeted TestU01 validation.
 3. Decide whether standalone NIST STS is required for the final scope.
 4. Curate final paper-ready figures and tables.
 5. Freeze final local protocol/results.

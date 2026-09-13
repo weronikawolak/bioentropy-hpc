@@ -1,0 +1,20 @@
+experiment:
+  id: testu01-smallcrush-logistic-float64
+  replicate_id: 0
+  master_seed: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+source:
+  type: logistic
+  output_bits: 1048576
+  parameters:
+    r: 4.0
+    arithmetic:
+      mode: float64
+    burn_in: 1000
+    extraction: threshold
+    initial_state:
+      mode: explicit
+      x0: '0.63481853342071715'
+execution:
+  chunk_bytes: 65536
+conditioning:
+  mode: ascon_xof128
