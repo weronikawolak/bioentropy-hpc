@@ -71,3 +71,28 @@ The remaining required work is therefore:
 - HPC strong/weak scaling;
 - environment and reproducibility capture on the cluster;
 - final frozen reproduction.
+
+
+## HPC execution readiness
+
+The complete HPC execution harness is prepared locally.
+
+Available components include:
+
+- deterministic workload generation;
+- static non-overlapping rank sharding;
+- local parallel dry-run;
+- strong-scaling protocol;
+- weak-scaling protocol;
+- three-repetition aggregation;
+- Slurm execution template;
+- cluster preflight validation;
+- dry-run-first campaign submitter;
+- result provenance;
+- speedup and parallel-efficiency analysis.
+
+The submitter does not submit jobs unless the explicit `--submit`
+flag is supplied.
+
+Actual HPC scaling measurements remain blocked only by cluster
+access and cluster-specific Slurm parameters.

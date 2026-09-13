@@ -18,7 +18,11 @@ ROOT="${SLURM_SUBMIT_DIR}"
 
 cd "${ROOT}"
 
-source .venv/bin/activate
+if [[ -f .venv/bin/activate ]]; then
+    source .venv/bin/activate
+fi
+
+PYTHON_BIN="${BIOENTROPY_PYTHON:-python3}"
 
 mkdir -p \
   "${BIOENTROPY_RESULT_DIR}"
@@ -28,7 +32,7 @@ START_NS="$(
 )"
 
 srun \
-  python \
+  "${PYTHON_BIN}" \
   scripts/hpc/run_manifest_shard.py \
   --manifest \
   "${BIOENTROPY_MANIFEST}" \

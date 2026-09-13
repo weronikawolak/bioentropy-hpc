@@ -5984,3 +5984,33 @@ is intentionally very small and process-launch overhead can
 dominate execution.
 
 The actual HPC experiment remains pending cluster access.
+
+
+## 2026-09-13 — HPC execution package finalized
+
+The cluster-facing execution package was completed locally.
+
+A cluster preflight script now validates the toolchain, required
+cryptographic and numerical libraries, Git revision/state, Release
+build, complete test suite, runner availability, and optionally the
+Slurm environment.
+
+A campaign submitter was added for frozen strong- and weak-scaling
+experiments. Submission is opt-in: without the explicit `--submit`
+flag it only generates manifests and exact `sbatch` commands.
+
+Strong-scaling plans enforce a fixed total workload and require the
+workload count to divide evenly across every selected task count.
+
+Weak-scaling plans keep the number of workload items per task fixed.
+
+Both modes retain three independent repetitions per scaling point in
+the final protocol.
+
+The local dry-run and submission-plan validation are infrastructure
+tests only and are not treated as HPC performance results.
+
+No additional HPC implementation work is required before cluster
+access. Remaining HPC work consists of environment-specific preflight,
+tiny Slurm smoke tests, actual scaling execution, analysis, and final
+reproduction.
