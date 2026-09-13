@@ -130,7 +130,7 @@ def main():
         exist_ok=True,
     )
 
-    started_ns = time.time_ns()
+    started_monotonic_ns = time.perf_counter_ns()
 
     completed = []
 
@@ -204,7 +204,7 @@ def main():
             }
         )
 
-    finished_ns = time.time_ns()
+    finished_monotonic_ns = time.perf_counter_ns()
 
     summary = {
         "rank":
@@ -221,14 +221,14 @@ def main():
             len(assigned),
         "completed_count":
             len(completed),
-        "started_ns":
-            started_ns,
-        "finished_ns":
-            finished_ns,
+        "started_monotonic_ns":
+            started_monotonic_ns,
+        "finished_monotonic_ns":
+            finished_monotonic_ns,
         "rank_wall_seconds":
             (
-                finished_ns
-                - started_ns
+                finished_monotonic_ns
+                - started_monotonic_ns
             )
             / 1e9,
         "total_output_bits":

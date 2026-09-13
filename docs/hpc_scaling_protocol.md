@@ -1,106 +1,102 @@
-# HPC Scaling Protocol
+# HPC Ensemble Scaling Protocol
 
 ## Scope
 
-HPC experiments evaluate scalability and execution performance.
-They do not provide additional evidence of entropy or
-cryptographic security.
+The HPC experiments evaluate computational scalability of independent
+experiment workloads.
 
-## Workload model
+They do not measure entropy, randomness quality, or cryptographic
+security.
 
-Each independent experiment configuration is one workload item.
+They also do not claim that a single Logistic Map, cellular automaton,
+or cryptographic generator realization is internally parallelized.
 
-Workloads are deterministically distributed among workers using:
+## Parallelism model
+
+The unit of parallel work is one independent experiment configuration.
+
+Static assignment follows:
 
 `workload_index mod world_size == rank`
 
-This guarantees complete, non-overlapping static partitioning.
+Therefore each rank executes a disjoint subset of the frozen workload
+ensemble.
 
-## Strong scaling
+The reported scaling is consequently:
 
-Strong scaling keeps total work fixed while increasing the number
-of Slurm tasks.
+- ensemble scaling;
+- workflow-level scaling;
+- campaign throughput scaling.
 
-For each process count:
+It must not be described as speedup of one individual generator
+realization.
 
-- the same frozen manifest is used;
-- the same workload limit is used;
-- three independent timing repetitions are executed.
+## Ensemble strong scaling
 
-Reported quantities:
+A fixed total workload ensemble is executed using increasing numbers
+of workers.
 
-- median job wall time;
-- throughput;
-- speedup `S_p = T_1 / T_p`;
-- parallel efficiency `E_p = S_p / p`.
+For worker count `p`:
 
-## Weak scaling
+`S_p = T_1 / T_p`
 
-Weak scaling keeps the number of workload items per task fixed.
+and:
 
-For `p` tasks and `w` workload items per task:
+`E_p = S_p / p`
 
-`total_workloads = p * w`.
+where `T_p` is the median job-level wall time.
 
-Three timing repetitions are executed per process count.
+## Ensemble weak scaling
 
-Reported quantities:
+The number of independent workload items per worker remains fixed.
 
-- median job wall time;
-- aggregate throughput;
-- weak-scaling efficiency `E_p = T_1 / T_p`.
+For worker count `p`:
 
-## Timing boundary
+`total workload = p * workload_per_worker`
 
-The primary timing measure is job-level wall time surrounding the
-parallel `srun` execution.
+Weak-scaling efficiency is:
 
-Per-rank timings are retained for imbalance diagnostics but are not
-summed to obtain application wall time.
+`E_p = T_1 / T_p`
+
+## Timing
+
+Elapsed durations are measured using a monotonic high-resolution
+clock.
+
+Absolute UTC timestamps are recorded only as provenance and are not
+used to calculate benchmark duration.
+
+The primary timing boundary surrounds completion of the full workload
+ensemble.
+
+Per-rank timings are retained for load-imbalance diagnostics.
 
 ## Repetitions
 
-The final HPC campaign uses three repetitions per scaling point.
+The final cluster campaign uses three timing repetitions per scaling
+point.
 
-The median is the primary summary statistic.
+The median wall time is the primary statistic.
 
-Minimum and maximum times are retained as descriptive variability
+Minimum and maximum values are retained as descriptive variability
 information.
 
-## Provenance
+## Planned profiles
 
-Each HPC result records:
-
-- Git commit;
-- profile;
-- scaling mode;
-- task count;
-- repetition;
-- manifest;
-- workload limit;
-- total generated bits;
-- Slurm job ID;
-- node list;
-- CPUs per task;
-- job wall time.
-
-Cluster-specific environment information will be captured during the
-actual HPC campaign.
-
-## Profiles
-
-The planned core profiles are:
+Core profiles:
 
 - AES-256 CTR_DRBG deterministic reference;
 - Logistic Map MPFR-256.
 
-The cryptographic reference provides a comparatively conventional
-compute workload.
+CTR_DRBG provides a conventional deterministic reference workload.
 
-MPFR-256 represents the higher-cost precision-sensitive chaotic
-generator.
+MPFR-256 represents a substantially more expensive numerical
+chaotic-source workload.
 
-## Interpretation
+## Interpretation boundary
 
-Scaling performance must not be interpreted as a randomness,
-entropy, or security metric.
+Performance results must remain separate from statistical quality
+results.
+
+Higher throughput or better scaling does not imply higher entropy,
+better statistical randomness, or stronger cryptographic security.

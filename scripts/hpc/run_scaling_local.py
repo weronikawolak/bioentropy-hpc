@@ -3,6 +3,7 @@
 from pathlib import Path
 import argparse
 import csv
+import datetime
 import json
 import subprocess
 import sys
@@ -16,6 +17,12 @@ SHARD_RUNNER = (
     / "scripts/hpc"
     / "run_manifest_shard.py"
 )
+
+
+def utc_now():
+    return datetime.datetime.now(
+        datetime.timezone.utc
+    ).isoformat()
 
 
 def main():
@@ -45,7 +52,10 @@ def main():
 
     parser.add_argument(
         "--mode",
-        choices=["strong", "weak"],
+        choices=[
+            "ensemble-strong",
+            "ensemble-weak",
+        ],
         required=True,
     )
 
@@ -117,7 +127,11 @@ def main():
 
     processes = []
 
-    started_ns = time.time_ns()
+    started_utc = utc_now()
+
+    started_ns = (
+        time.perf_counter_ns()
+    )
 
     for rank in range(
         args.world_size
@@ -165,47 +179,79 @@ def main():
 
     failures = []
 
-    for process, handle, rank in processes:
-        returncode = process.wait()
+    for (
+        process,
+        handle,
+        rank,
+    ) in processes:
+
+        returncode = (
+            process.wait()
+        )
+
         handle.close()
 
         if returncode != 0:
             failures.append(
-                (rank, returncode)
+                (
+                    rank,
+                    returncode,
+                )
             )
 
-    finished_ns = time.time_ns()
+    finished_ns = (
+        time.perf_counter_ns()
+    )
+
+    finished_utc = utc_now()
 
     if failures:
         raise RuntimeError(
-            f"worker failures: {failures}"
+            f"worker failures: "
+            f"{failures}"
         )
 
     job = {
         "schema_version":
-            1,
+            2,
+
         "environment":
             "local",
+
+        "scaling_scope":
+            "independent-workload-ensemble",
+
         "profile":
             args.profile,
+
         "mode":
             args.mode,
+
         "world_size":
             args.world_size,
+
         "limit":
             args.limit,
+
         "repetition":
             args.repetition,
+
         "manifest":
             str(
-                manifest.relative_to(ROOT)
+                manifest.relative_to(
+                    ROOT
+                )
             ),
+
         "total_output_bits":
             total_output_bits,
-        "started_ns":
-            started_ns,
-        "finished_ns":
-            finished_ns,
+
+        "started_utc":
+            started_utc,
+
+        "finished_utc":
+            finished_utc,
+
         "wall_seconds":
             (
                 finished_ns

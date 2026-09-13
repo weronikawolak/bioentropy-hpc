@@ -7,6 +7,12 @@ import json
 import pandas as pd
 
 
+VALID_MODES = {
+    "ensemble-strong",
+    "ensemble-weak",
+}
+
+
 def main():
     parser = argparse.ArgumentParser()
 
@@ -29,10 +35,14 @@ def main():
     jobs = []
 
     for path in sorted(
-        root.rglob("job.json")
+        root.rglob(
+            "job.json"
+        )
     ):
         data = json.loads(
-            path.read_text()
+            path.read_text(
+                encoding="utf-8"
+            )
         )
 
         data["path"] = str(path)
@@ -64,7 +74,43 @@ def main():
 
     if missing:
         raise RuntimeError(
-            f"Missing columns: {missing}"
+            f"Missing columns: "
+            f"{sorted(missing)}"
+        )
+
+    invalid_modes = (
+        set(raw["mode"])
+        - VALID_MODES
+    )
+
+    if invalid_modes:
+        raise RuntimeError(
+            f"Invalid scaling modes: "
+            f"{sorted(invalid_modes)}"
+        )
+
+    if (
+        raw["wall_seconds"]
+        <= 0
+    ).any():
+        raise RuntimeError(
+            "Non-positive wall time"
+        )
+
+    duplicates = raw.duplicated(
+        subset=[
+            "profile",
+            "mode",
+            "world_size",
+            "repetition",
+        ],
+        keep=False,
+    )
+
+    if duplicates.any():
+        raise RuntimeError(
+            "Duplicate scaling point/"
+            "repetition detected"
         )
 
     grouped = (
@@ -81,18 +127,22 @@ def main():
                 "wall_seconds",
                 "size",
             ),
+
             wall_median_seconds=(
                 "wall_seconds",
                 "median",
             ),
+
             wall_min_seconds=(
                 "wall_seconds",
                 "min",
             ),
+
             wall_max_seconds=(
                 "wall_seconds",
                 "max",
             ),
+
             total_output_bits=(
                 "total_output_bits",
                 "median",
@@ -101,7 +151,7 @@ def main():
     )
 
     grouped[
-        "throughput_mib_s"
+        "aggregate_throughput_mib_s"
     ] = (
         grouped[
             "total_output_bits"
@@ -114,11 +164,15 @@ def main():
     )
 
     grouped[
-        "speedup"
+        "ensemble_speedup"
     ] = float("nan")
 
     grouped[
-        "parallel_efficiency"
+        "ensemble_parallel_efficiency"
+    ] = float("nan")
+
+    grouped[
+        "weak_scaling_efficiency"
     ] = float("nan")
 
     for (
@@ -144,7 +198,7 @@ def main():
         if len(baseline) != 1:
             raise RuntimeError(
                 f"{profile}/{mode}: "
-                "exactly one p=1 aggregate "
+                "exactly one p=1 baseline "
                 "is required"
             )
 
@@ -169,30 +223,39 @@ def main():
                 ]
             )
 
-            if mode == "strong":
+            if (
+                mode
+                == "ensemble-strong"
+            ):
                 speedup = t1 / tp
-
-                efficiency = (
-                    speedup / p
-                )
 
                 grouped.loc[
                     index,
-                    "speedup",
+                    "ensemble_speedup",
                 ] = speedup
 
                 grouped.loc[
                     index,
-                    "parallel_efficiency",
-                ] = efficiency
+                    "ensemble_parallel_efficiency",
+                ] = (
+                    speedup / p
+                )
 
-            elif mode == "weak":
+            else:
                 grouped.loc[
                     index,
-                    "parallel_efficiency",
+                    "weak_scaling_efficiency",
                 ] = (
                     t1 / tp
                 )
+
+    grouped = grouped.sort_values(
+        [
+            "profile",
+            "mode",
+            "world_size",
+        ]
+    )
 
     output = Path(
         args.output
@@ -201,14 +264,6 @@ def main():
     output.parent.mkdir(
         parents=True,
         exist_ok=True,
-    )
-
-    grouped = grouped.sort_values(
-        [
-            "profile",
-            "mode",
-            "world_size",
-        ]
     )
 
     grouped.to_csv(
@@ -220,7 +275,8 @@ def main():
     print(
         grouped.to_string(
             index=False,
-            float_format=lambda x: f"{x:.6f}",
+            float_format=lambda x:
+                f"{x:.6f}",
         )
     )
 

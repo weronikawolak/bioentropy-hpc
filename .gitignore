@@ -52,3 +52,9 @@ docs/local/
 
 # Generated experiment results
 results/
+
+# HPC generated execution artifacts
+configs/hpc/
+results/hpc/runs/
+results/hpc/preflight/
+results/hpc/submission_plans/
