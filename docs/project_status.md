@@ -123,3 +123,25 @@ The remaining HPC work requires access to the target cluster:
 3. final strong/weak scaling campaign;
 4. aggregation and scaling figures;
 5. final frozen reproduction.
+
+
+## HPC campaign freeze
+
+The pre-cluster HPC protocol is frozen in:
+
+`docs/hpc_campaign_freeze.md`
+
+Frozen design decisions include:
+
+- two required profiles: CTR_DRBG and Logistic MPFR-256;
+- powers-of-two worker counts including `p=1`;
+- three workload items per worker at the largest scaling point;
+- three timing repetitions per point;
+- cluster-specific per-profile output-size calibration;
+- monotonic job timing;
+- median wall-time aggregation;
+- explicit ensemble/workflow scaling interpretation.
+
+The exact maximum worker count and calibrated output size remain
+cluster-dependent and will be frozen immediately after cluster
+preflight.
